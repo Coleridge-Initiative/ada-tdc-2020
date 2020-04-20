@@ -184,9 +184,7 @@
   code: "DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2009q1;
   \nCREATE TABLE ada_tdc_2020.stable_empl_base_2009q1 as
   \nSELECT 
-  \na.*,
-  \n(b.job_yr_q - '3 month'::interval)::date  as lag_q
-  \n(c.job_yr_q + '3 month'::interval)::date as lead_q
+  \na.*
   \nFROM ada_tdc_2020.all_empl_wage_2009q1 a,
   \nada_tdc_2020.all_empl_wage_2009q1 b,
   \nada_tdc_2020.all_empl_wage_2009q1 c
@@ -278,9 +276,7 @@
   code: "DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2016q4;
   \nCREATE TABLE ada_tdc_2020.stable_empl_base_2016q4 as
   \nSELECT 
-  \na.*,
-  \n(b.job_yr_q - '3 month'::interval)::date  as lag_q
-  \n(c.job_yr_q + '3 month'::interval)::date as lead_q
+  \na.*
   \nFROM ada_tdc_2020.all_empl_wage_2009q1 a,
   \nada_tdc_2020.all_empl_wage_2009q1 b,
   \nada_tdc_2020.all_empl_wage_2009q1 c

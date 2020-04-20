@@ -245,6 +245,7 @@ _All Employers with wages in 2009Q1 exit quarter + 2 quarters_
 # Employer Characteristics Tables
 
 ## Form of Table
+
 ```{marginfigure, echo=TRUE}
 `naics_3_digit` is the industry identifier for business. 
 
@@ -408,13 +409,12 @@ _Inclusion Criteria_
 - Inidividuals who had three consecutive quarters of employment at the same firm
 - Looking at stably employed inidividuals with a reference quarter as the first quarter after exit of our TANF cohorts
 
-The form of the table is effective equal to that of the wage tables. However, only those individuals who were employed for three consective quarters, beginning with the exit quarter, are considered _stably employed_ and contribute to the aggregate statistics. 
+The form of the table is equivalent to that of the wage tables. However, only those individuals who were employed for three consective quarters, beginning with the exit quarter, are considered _stably employed_ and are in this table and therefore contribute to the aggregate statistics. 
 
 _Form of the table created with a `CROSS-JOIN`, the base table for employment outcomes_
 ```{r, echo = F, fig.fullwidth = TRUE}
-cross_join_df <- data.frame(matrix(nrow = 3, ncol = 9))
-colnames(cross_join_df)<-c("ssn","year","quarter","uiacct","wages",
-                           "fein","job_yr_q", "lag_q","lead_q")
+cross_join_df <- data.frame(matrix(nrow = 4, ncol = 7))
+colnames(cross_join_df)<-c("ssn","year","quarter","uiacct","wages","fein","job_yr_q")
 
 cross_join_df$ssn <- rep('ssn', 4)
 cross_join_df$year<-c(2010,2010,2010,2011)
@@ -422,14 +422,7 @@ cross_join_df$quarter <-  c(2,3,1,1)
 cross_join_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl")
 cross_join_df$wages <- c(1291,200,3866,1928)
 cross_join_df$fein <- rep('fein', 4)
-cross_join_df$job_yr_q<- c("2010-04-01","2010-04-01","2010-04-01")
-cross_join_df$lag_q <- c("2010-04-01","2010-04-01","2010-04-01")
-cross_join_df$lead_q <- c("2010-04-01","2010-04-01","2010-04-01")
+cross_join_df$job_yr_q<- c("2010-04-01","2010-04-01","2010-04-01","2010-04-01")
 
-  
 kable(cross_join_df)
 ```
-
-_All employment outcomes_
-
-_Stable employment outcomes_
