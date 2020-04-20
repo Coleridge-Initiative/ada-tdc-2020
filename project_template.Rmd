@@ -1,0 +1,300 @@
+---
+title: "Project Template Handout"
+author: "Coleridge"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: 
+    margin_references: true
+    toc: true
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(tidyverse)
+library(knitr)
+
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+
+# Introduction
+Project template that serves as a jumping off point for final projects for the TDC 
+
+# Goal
+To provide a framework for describing the relationship between the labor market faced by TANF recipients and their earnings and employment outcomes. Use the analysis to shed light on the current crisis.
+
+# Specific questions  
+
+1.  What are the earnings and employment outcomes of TANF recipients?  
+1.  What are the characteristics of employers likely to hire TANF recipients?  
+1.  How are employer characteristics related to the labor market outcomes of TANF recipients.  
+1.  How can you use these results to inform your agency response to the current jobs crisis?  
+
+
+
+# Policy relevance
+The TANF program “is designed to help needy families achieve self-sufficiency.” State agencies administering this federal program have an interest in understanding how TANF participation can support long-term, stable employment to achieve these goals. Administrative data on TANF participation joined with administrative data on earnings and employers can be used to describe the labor market outcomes of TANF recipients.
+
+
+# Table References
+Three types of tables are used in this analysis - TANF, Wage and Employer tables. We have two tables per type, one for each cohort (TANF recipients leaving in 2016 Q4 and 2009 Q1). `r margin_note('See [Table Creation Handout](table_creation_handout.html){target="_blank"}')`
+
+
+## Individual
+
+**Cohort**
+We have two cohorts - individuals (primary recipients) leaving TANF in Q4 2016; individuals leaving in Q1 2009. We show a preview of these tables. We create parameterized functions for reading calculating quarterly and annual earnings.  These functions mirror the SQL queries in `Data Exploration.ipynb`. 
+
+### `gen_quarterly_earnings_query`
+This function calculates a quarterly total earnings distribution. Inputs to this function are `cohort` and `yr_quarter`.
+
+### `gen_annual_earnings_query`
+This function calculates a annual total earnings distribution. Inputs to this function are `cohort` and `yr_quarter`.
+
+
+- Develop earnings and employment measures
+    -	Earnings (quarterly or annual)
+    -	Full-quarter employment
+- Identify other factors such as
+    -	Place of residence
+
+## Employer
+- Develop employer characteristics
+  -	Employment (total, stable)
+  -	Payroll (total, average, stable)
+  -	Industry
+  -	Other measures (turnover, earnings of workers in different percentiles)
+
+
+<!-- # Data Exploration -->
+
+
+
+<!-- ```{marginfigure, echo=TRUE} -->
+<!-- See `Table Creation.ipynb`   -->
+<!-- ``` -->
+
+<!-- This document covers the specifications of cohort tables and the SQL queries used to generate them.  -->
+
+<!-- # TANF Tables -->
+
+<!-- Two tables were created in the TANF data: `ada_tdc_2020.tanf_2009q1` and `ada_tdc_2020.tanf_2016q4` which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. `r margin_note('See data dictionary *chapin_hall_model.xlsx*')` The unit of analysis is a `person-spell`. -->
+
+<!-- ## Form of Table -->
+
+<!-- ```{marginfigure, echo=TRUE} -->
+<!-- `tanf_total_months` is sum of `tanf_spell_months` across all spells that the individual had. -->
+<!-- ``` -->
+
+<!-- ```{r, echo = F} -->
+<!-- df <- data.frame(matrix(nrow = 4, ncol = 7)) -->
+<!-- colnames(df)<-c("ssn","month","tanf_start","tanf_end","tanf_spell_months","tanf_total_months","county") -->
+
+<!-- df[,1] <- c("ssnA","ssnB","ssnC","ssnD") -->
+<!-- df[,2] <- c("200901","200902","200901","200903") -->
+<!-- df[,3] <- c(FALSE, TRUE, FALSE, FALSE) -->
+<!-- df[,4] <- c(TRUE, TRUE, TRUE, TRUE) -->
+<!-- df[,5] <- c(4,1,7,13) -->
+<!-- df[,6] <- c(10,1,18,13) -->
+<!-- df[,7] <- c(097, 052,095,173) -->
+
+<!-- kable(df,align=rep('c', 7)) -->
+<!-- ``` -->
+
+<!-- ## Specifications    -->
+
+<!-- _Inclusion Criteria_    -->
+<!-- - Spell ends ("exit") in a given quarter (2016 Q4 and 2009 Q1)   -->
+<!-- - Recipient is a primary recipient of TANF    -->
+
+<!-- _Characteristics_    -->
+<!-- - Earliest Time Stamp: quarter of exit    -->
+<!-- - Latest Time Stamp: 8 quarters post-exit -->
+
+
+
+**Julia's notes**
+Getting Started
+
+Learn the context
+Conduct a literature review to help formulate and provide context for your research question. For each reference, include your reason for reference, for example,
+-	Understanding of data
+-	Analytical method
+-	Outcome measures
+-	Model development
+-	Policy background
+
+Some related literature is available in the references
+
+Learn about the data
+-	Indiana Unemployment Insurance Wage Record data 
+-	Indiana QCEW data
+-	Indiana TANF data
+-	QCEW and UI wage records from Ohio, KY, Missouri, and Illinois
+
+Identify the analytical sample
+-       Unit of analysis (row): Adult exiting TANF in Q4 2016
+-       Features of interest from TANF data (columns): Person ID, demographic characteristics, TANF spell history,
+-    Features of interest from UI Wage record data: earnings and  employment 
+-    Features of interest from Employer data: Industry, total employment, total payroll, average payroll, stable employment, average earnings of stable employees, earnings of workers in different percentiles.   
+
+Define the outcomes
+-       Outcomes of interest: earnings and employment experience after leaving TANF.
+
+Identify a comparison groups of interest
+Compare the outcomes for a Q1 2009 cohort.  How can you use these results to inform your agency response to the current jobs crisis?
+
+
+Doing the Analysis
+Data Manipulation Tools
+-	Filtering 
+-	Grouping and aggregating
+-	Joining datasets
+Data Exploration Tools
+-	Descriptive statistics
+-	Visualization
+-	Clustering
+-	Inference
+
+Data Manipulation
+Individual: 
+Define cohort, e.g. individuals leaving TANF in Q4 2016; individuals leaving in Q1 2009
+Develop earnings and employment measures
+-	Earnings (quarterly or annual)
+-	Full-quarter employment
+Identify other factors such as
+-	Place of residence
+Employer
+Develop employer characteristics
+-	Employment (total, stable)
+-	Payroll (total, average, stable)
+-	Industry
+-	Other measures (turnover, earnings of workers in different percentiles)
+
+Data Exploration
+Descriptive Statistics
+1.	What are the characteristics of TANF leavers?
+2.	In which industries do leavers find stable employment?
+3.	Do TANF recipients who live in different regions in Indiana have different employment outcomes?  
+4.	What are the characteristics of all employers?
+5.	What are the characteristics of employers hiring TANF recipients?
+Visualization
+1.	Bar charts of earnings and employment outcomes for particular period
+2.	Stacked bar charts for multiple periods
+3.	Line graphs
+4.	Maps of employer location
+
+Clustering
+1.	Cluster businesses and examine how employers in different clusters differ in proportion of TANF recipients hired (unsupervised)
+
+Inference
+1.	How many TANF recipients have no earnings/employment in IN in the year after exit? 
+a.	What are the mean earnings using IN data only?
+b.	What are the mean earnings using all available UI/QCEW data?
+2.	How do employment outcomes differ by region of residence? 
+a.	What are the major destination industries using IN data only?
+b.	What are the major destination industries using all available UI/QCEW data?
+If possible, repeat by cluster
+
+
+
+
+
+
+<!-- # Wage Record Tables -->
+<!-- Two tables were created using the UI Wage Record data: `ada_tdc_2020.wage_2016q4` and -->
+<!-- `ada_tdc_2020.wage_2009q1` which contain job and wage data. The unit of analysis is a `person-job`. -->
+
+<!-- ## Specification -->
+
+<!-- _Inclusion Criteria_      -->
+<!-- - Contains ssns that were in the corresponding cohort      -->
+<!-- - Wage record data for exit-quarter and 8 quarters post-exit    -->
+
+<!-- _Characteristics_     -->
+<!-- - Earliest Time Stamp: quarter of exit      -->
+<!-- - Latest Time Stamp: 8 quarters post-exit    -->
+
+<!-- ## Form of Table -->
+
+<!-- ```{marginfigure, echo=TRUE} -->
+<!-- `uiacct` is the business identifier within the UI Wage Database. -->
+<!-- ``` -->
+
+<!-- ```{r, echo = F} -->
+<!-- wage_df <- data.frame(matrix(nrow = 4, ncol = 6)) -->
+<!-- colnames(wage_df)<-c("ssn","year","quarter","uiacct","wages","job_yr_q") -->
+
+<!-- wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD") -->
+<!-- wage_df$year<-c(2010,2010,2010,2011) -->
+<!-- wage_df$quarter <-  c(2,3,1,1) -->
+<!-- wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl") -->
+<!-- wage_df$wages <- c(1291,200,3866,1928) -->
+<!-- wage_df$job_yr_q<- c("2010-04-01","2010-07-01","2010-01-01","2011-01-01") -->
+
+
+<!-- kable(wage_df,align=rep('c', 6)) -->
+<!-- ``` -->
+
+
+<!-- # Employer Characteristics Tables -->
+
+<!-- The employer characteristics tables cover employers who hired at least one TANF recipient from our cohorts of interest in the first quarter post-exit. `r margin_note('confirm/understand this specification. why do we not look at the exit quarter? to improve capture, Im guessing. why dont we look at those employers who hire within the entire post-exit period?')` Two employer characteristics tables were created using the UI Wage Record data: `ada_tdc_2020.tanf_2016q4_empl` and `ada_tdc_2020.tanf_2009q1_empl`. The unit of analysis is `employer`. -->
+
+
+<!-- ## Form of Table -->
+
+<!-- ```{marginfigure, echo=TRUE} -->
+<!-- `naics_3_digit` is the industry identifier for business.  -->
+<!-- ``` -->
+
+<!-- ```{r, echo = F} -->
+<!-- empl_df <- data.frame(matrix(nrow = 3, ncol = 3)) -->
+<!-- colnames(empl_df)<-c("uiacct","naics_3_digit","size") -->
+
+<!-- empl_df$uiacct <- c("6V4K45FQKBxf", "IVuQ4vdEsunx", "wY3KlMVPr0SL") -->
+<!-- empl_df$naics_3_digit<-c(447,772,624) -->
+<!-- empl_df$size <-  c(907,6,45) -->
+
+<!-- kable(empl_df,align=rep('c', 3)) -->
+<!-- ``` -->
+
+<!-- ## Specification    -->
+
+<!-- _Inclusion Criteria_     -->
+<!-- - Contains firms that employed ssns in the corresponding cohort    -->
+<!-- - Wage record data for 8 quarters post-exit  (exclusive of exit quarter)   -->
+
+<!-- _Characteristics_     -->
+<!-- - Point-in-Time file (1st quarter post-exit)   -->
+
+
+<!-- ## SQL Create Table Query -->
+
+<!-- ```yaml -->
+
+<!-- CREATE TABLE ada_tdc_2020.tanf_2009q1_empl -->
+<!-- SELECT  -->
+<!-- uiacct, naics_3_digit, COUNT(DISTINCT(ssn)) as size -->
+<!-- from in_dwd.wage_by_employer -->
+<!-- WHERE -->
+<!-- uiacct in (SELECT DISTINCT uiacct FROM ada_tdc_2020.wage_2009q1) -->
+<!-- and -->
+<!-- year = 2009 and quarter = 2 -->
+
+<!-- ``` -->
+
+<!-- # Base Table References    -->
+<!-- `in_fssa.person_month`: base table for creating TANF cohorts.    -->
+
+
+<!-- `in_dwd.wage_by_employer`: base table for creating Wage Record cohorts and Employer Characteristics tables. -->

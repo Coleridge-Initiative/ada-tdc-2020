@@ -1,0 +1,593 @@
+---
+title: "Data Exploration Handout"
+author: "Coleridge"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: 
+    margin_references: true
+    toc: true
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+# Introduction
+
+The goal of the Data Exploration lesson is to provide a framework for describing the relationship between the labor market faced by TANF recipients and their earnings and employment outcomes. Use the analysis to shed light on the current crisis.
+
+We will answer the following questions:
+
+1.  What are the earnings and employment outcomes of TANF recipients?  
+1.  What are the characteristics of employers likely to hire TANF recipients?  
+
+_Policy Relevance: The TANF program “is designed to help needy families achieve self-sufficiency.” State agencies administering this federal program have an interest in understanding how TANF participation can support long-term, stable employment to achieve these goals. Administrative data on TANF participation joined with administrative data on earnings and employers can be used to describe the labor market outcomes of TANF recipients._
+
+# Lesson Structure
+
+The lesson is given over the course of two days - Concepts of Data Exploration and Applications of Data Exploration. 
+
+```{marginfigure, echo=TRUE}
+**Materials**:  
+1. Data Exploration Video Lecture  
+2. `Data Exploration.ipynb`  
+```
+
+This handout mirrors the content in the Data Exploration notebook lesson which you can access only in the Administrative Data Research Facility (ADRF). **There is no sensitive data anywhere in this document.** It is a handy reference to use as you step through the lesson in the ADRF, and to refer back to in the future.
+
+Each section has:   
+
+- **Guiding Questions**, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.
+- **Checkpoints**,  which are mini-exercises for you to complete, to be reviewed during "in-class" time. They are included in each section in <span style="color:red; ">red</span>.
+
+`r margin_note('these come from the syllabus')`
+# Learning Objectives and Outcomes
+
+**Concepts of Data Exploration**
+1.   Become familiar with common measures of employment outcomes.
+1.   Begin to think about which measures are most important to their home state’s pilot project.
+1.   Be introduced to specifications of the cohorts.
+**Applications of Data Exploration**
+1.  Become comfortable querying the database with SQL queries in R.
+1.  Become comfortable using the main tables in TANF and UI data.
+1.  Gain skills in creating basic descriptives of the datasets, aggregating data frames.
+1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in **Concepts of Data Exploration**.
+
+
+
+
+
+<!-- ## Day 2, Concepts of Data Exploration -->
+
+<!-- `r margin_note('this was all taken from the master syllabus. remove?')` -->
+
+<!-- At the end of this section, participants will have learned of common metrics for employment outcomes and will understand the analytical frame and questions to consider when developing an analysis using such metrics. The lesson will range from covering basic statistics to developing an analytical frame for creating employment metrics. This material will lay the groundwork for the hands-on data exploration tasks covered in Day 3. -->
+
+<!-- _Policy Relevance: Understanding employment trajectories of TANF recipients is the primary focus of this course, and through a lecture and discussion session, participants will understand the primary metrics used to measure employment outcomes.  They will be exposed to the questions that frame the analytical task and yield decisions around which metrics to use. Participants will consider, for example, whether individuals had other TANF experience post-“exit”; whether to look at annual earnings, earnings from dominant employers or all employers, etc. _ -->
+
+
+<!-- **Learning Objectives:**       -->
+
+<!-- 1.   Become familiar with common measures of employment outcomes.     -->
+<!-- 1.   Begin to think about which measures are most important to their home state’s pilot project.   -->
+<!-- 1.   Be introduced to specifications of the cohort that they will be working with on Day 3.    -->
+<!-- 1.   Be prepared for the hands-on Data Exploration notebook for tomorrow.    -->
+
+<!-- ## Day 3, Applications of Data Exploration -->
+
+<!-- We will apply lessons learned from yesterday’s lecture and begin working with the data in earnest. Participants will learn to query, filter and aggregate the data and create basic descriptive statistics of employment and earnings. Using pre-written code developed to create a cohort of TANF exiters, participants will calculate employment and earnings metrics for the cohort post-exit.  They will also describe the hiring patterns of firms.  -->
+
+<!-- _Policy Relevance: Participants will learn how to generate descriptive statistics on TANF and UI Wage data and calculate employment outcome metrics (e.g. “full quarter employment”)._ -->
+
+<!-- **Learning Objectives:**   -->
+
+<!-- 1.  Become comfortable querying the database with SQL queries in R.    -->
+<!-- 1.  Become comfortable using the main tables in TANF and UI data.    -->
+<!-- 1.  Gain skills in creating basic descriptives of the datasets, aggregating data frames.   -->
+<!-- 1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed on Day 2.    -->
+
+
+# Lesson Content
+`r margin_note('data_exploration.ipynb')`
+
+## R Setup
+Load libraries   
+`library(tidyverse)`  
+
+```{marginfigure, echo=TRUE}
+It is good practice to put the library name before the function, e.g. `DBI::dbGetQuery(con,query)`  in case the function you are using exists in multiple libraries. However if you're confident that the function you want to use exists in only one of the libraries loaded in your environment, you can skip it.
+```
+
+Calling functions from libraries   
+`tidyverse::mutate()`  
+
+Getting help on a library or function     
+`?strptime`
+`?tidyverse`
+
+## Loading Data into R/Jupyter
+
+Establish connection with `DBI` and `RPostgreSQL` libraries 
+
+```yaml
+drv <- dbDriver("PostgreSQL")
+con <- dbConnect(drv
+              ,dbname = "postgresql://stuffed.adrf.info/appliedda")
+              
+              
+```
+
+We will use this database connection `con` throughout this lesson. Then we create our first SQL query.
+
+```yaml
+query <- "SELECT * 
+FROM in_fssa.person_month
+LIMIT 20;"
+
+query
+```
+
+Queries are run with the function `dbGetQuery` from the `DBI` library. The function expects 2 inoputs - the database connection, `con`, and the `query`.
+
+```yaml
+df <- dbGetQuery(con,query)
+```
+
+
+## What's in the database?
+
+```{marginfigure, echo=TRUE}
+Every SQL database has a metadata schema called `information_schema`
+```
+We learn more about what is in the database by inspecting the results of queries  `information_schema`.  Here, we  introduce the `head(df)` function which will print out the first 6 rows of the dataframe `df`.
+
+```yaml
+df <- dbGetQuery(con, "SELECT * FROM information_schema.schemata")
+
+head(df)
+```
+
+Look at metadata on the columns in tables in the database.
+
+```yaml
+query <- "SELECT *
+FROM information_schema.columns limit 10;"
+
+dbGetQuery(con,query)
+```
+
+
+
+```{marginfigure, echo=TRUE}
+**SCHEMAS**  
+`ada_tdc_2020` - Cohort data. We will primarily query from this schema.    
+`in_dwd`- Indiana UI Wage Record data      
+`in_fssa` - Indiana TANF claims      
+```
+Query the schemas we will be using to see what tables they contain. We use the SQL commands `WHERE` and `IN` to filter to just look at our schemas.
+
+```yaml
+schema_query <- "SELECT DISTINCT 
+table_schema,table_name
+FROM information_schema.tables
+WHERE table_schema  IN ('in_dwd', 'in_fssa', ;ada_tdc_2020')
+limit 10;"
+
+dbGetQuery(con,schema_query)
+
+```
+
+``` {marginfigure, echo = TRUE}
+Plaeholders are denoted by `%s` if the expected replacement value is a string; `%d` if the expected replacement value is an integer; run `?sprintf` for more replacement values.
+```
+We will now _parameterize_ the query we just ran, using a string manipulation function called `sprintf`, which takes a string with placeholders, and their replacement value(s). A query that is parameterized is more flexible in that you can re-use queries and plug in new parameters (usually in the `FROM` or `WHERE` clause) without rewriting the query. This is useful for us in 2 ways: first, because we want to look at employment measures at different time points after exit from the TANF program; and second, because we want to compare these measures across different cohorts.
+
+```{marginfigure, echo=TRUE}
+First we establish which variables we will want to swap out - here, `schema` and `tbl`.
+
+
+Then, we write a `base_query` with placeholders (denoted by `%s`) that indicate to the `sprintf` function where the replacement values go.
+
+
+Finally, we use the `sprintf` function, a string manipulation, to tie it all together.
+```
+
+```yaml
+schema <-"in_fssa"
+tbl <- "person_month"
+
+base_query <- "SELECT * 
+FROM information_schema.columns
+WHERE table_schema = '%s' AND table_name = '%s'"
+
+query <- sprintf(base_query, schema,tbl)
+
+dbGetQuery(con,query)
+```
+
+Now let's start looking at the data we'll be using for this class. Take a look at what's in the `in_fssa` monthly person-level TANF claims. Soon, we will look at tables of pre-defined cohorts, whcih were derived from this `person_month` table. 
+
+```yaml
+query <- "SELECT *
+FROM in_fssa.person_month
+limit 20;"
+
+in_df <- dbGetQuery(con,query)
+
+head(in_df)
+```
+
+## Individual
+**Summary Statistics: TANF**
+
+**Guiding Questions:**  
+For individuals who had a spell ending in 2016 Q4, we want to know:    
+
+1.  For how long had these individuals been receiving benefits?    
+1.  What is the spell length distribution amongst these individuals?   
+1.  What is the spell length at the 25th percentile?   
+1.  What are the spell lengths at the 10th, 25th, 50th, and 75th percentiles?
+
+```{marginfigure echo = TRUE}
+See the [table_creation notebook](/Users/sophierand/Google Drive/tdc_handouts/table_creation_handout.html) for more on the cohorts.
+```
+
+First, a quick look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016. We will compare employment measures for this cohort with another group of TANF recipients who exited in Q1 2009. 
+
+```yaml
+query <- "SELECT *
+FROM ada_tdc_2020.tanf_2016q4
+LIMIT 10;"
+
+cohort_df <- dbGetQuery(con,query)
+```
+_**Ask Yourself**_: What is the difference in the unit of analysis between the TANF claims in `in_fssa.person_month` and the spells in `ada_tdc_2020.tanf_2016q4`? Inspect the outputs of `in_df` and `cohort_df`.
+
+_**Ask Yourself**_: Which of the following are true?
+
+1. n_ssns_tanf > n_ssns_cohort     
+1. n_ssns_tanf < n_ssns_cohort     
+1. n_ssns_cohort = n_rows_cohort   
+1. n_ssn_cohort <= n_rows_cohort
+
+<span style="color:green; ">For how long had the individuals in the 2016 Q4 cohort been receiving benefits?</span>.
+
+
+```{marginfigure echo = TRUE} 
+The column `tanf_spell_months` has the number of months in that spell.
+
+**check this - this calculation should draw from in_fssa.person_month where ssn in cohort**
+
+rephrase as spell length distribution for the spell that ended and made them be part of the cohort
+  
+```
+The question is asking us about spell lengths, so we aggregate to count the number of person-spells with a given spell length.
+
+```yaml
+query <- "SELECT count(*),tanf_spell_months as length
+FROM ada_tdc_2020.tanf_2016q4
+GROUP BY length
+ORDER BY count desc"
+
+df <- dbGetQuery(con, query)
+
+```
+
+<span style="color:green; ">What is the distribution of spell lengths amongst these individuals?</span>
+
+
+We look at distribution of spell lengths in the 2016 Q4 cohort to answer this question.  Summary statistics, including quantile values, are generated using `summary(df)`.
+
+`r margin_note('compare results from summary function to results generated with percentile_cont. I did a quick QA and they were not the same (nor were they the same for 2019 - investigate.')`
+
+Using the `SQL` function `percentile_cont` to calculate the 25th percentile.  
+
+```yaml
+query <- "SELECT
+percentile_cont(0.25) 
+WITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25
+FROM ada_tdc_2020.tanf_2016q4
+```
+
+We can extend the query to calculate other percentile values, and use `unnest` function to see the percentile value with the percentile.
+
+```yaml
+query <- "SELECT unnest(
+                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+                   WITHIN GROUP (ORDER BY tanf_spell_months)
+                ) AS months,
+                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+FROM ada_tdc_2020.tanf_2016q4
+```
+
+<span style="color:red; font-weight: bold;">CHECKPOINT 1:</span>
+
+
+Parameterize the query used to calculate distribution of spell lengths using `sprintf` to calculate the distribution for the cohort exiting in Q1 2009. 
+
+<span style="color:red; font-weight: bold; font-style: italic;">Solution:</span>
+
+```yaml
+tbl <- tanf_2009q1
+
+base_query <- "SELECT unnest(
+                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+                   WITHIN GROUP (ORDER BY tanf_spell_months)
+                ) AS months,
+                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+FROM ada_tdc_2020.%s"
+
+query <- sprintf(base_query,tbl)
+```
+
+**Summary Statistics: Wages**
+
+**Guiding Questions:**     
+For individuals who had a spell ending in 2016 Q4, we want to know:  
+
+1.  What are the earnings and employment measures for TANF leavers?
+```{marginfigure echo = TRUE}
+Introduce `sprintf` function for making queries flexible by creating a placeholder for `yr_quarter` and the table name to calculate distribution of earnings in both cohorts, 1st and 5th quarter post exit   
+```
+    - \# of jobs by post-exit quarter (1st and 5th)   
+    - \# persons working those jobs by post-exit quarter (1st and 5th)   
+    - Distribution of wages in 1st quarter post-exit   
+    - \# of jobs per ssn    
+    - Distribution of \# of jobs per ssn      
+1.  Do TANF recipients who live in different regions in Indiana have different employment outcomes?
+1.  In which industries do leavers find stable employment?
+ 
+
+First, we preview the data in the wage cohort tables.
+
+```yaml
+dbGetQuery(con, "SELECT * FROM ada_tdc_2020.wage_2016q4 limit 5;)
+```
+
+<span style="color:green; ">What is the # of jobs by post-exit quarter (1st and 5th)?</span>
+
+```{marginfigure, echo=TRUE}
+Aggregate the total number of jobs with `count(*)`, since each row is a job. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).
+```
+
+```yaml
+query <- "SELECT
+job_yr_q, count(*)
+FROM ada_tdc_2020.wage_2016q4
+WHERE job_yr_q in ('2017-01-01', '2018-01-01')
+GROUP BY job_yr_q
+ORDER BY job_yr_q asc"
+```
+   
+<span style="color:green; ">How many persons were working those jobs?</span>
+```{marginfigure, echo=TRUE}
+Aggregate the total number of persons with `count(distinct(ssn))`, since each row is a job and any individual ssn may have multiple jobs. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).
+```
+
+```yaml
+query <- "SELECT
+job_yr_q, count(distinct(ssn))
+FROM ada_tdc_2020.wage_2016q4
+WHERE job_yr_q in ('2017-01-01', '2018-01-01')
+GROUP BY job_yr_q
+ORDER BY job_yr_q asc"
+```
+
+<span style="color:green; ">What is the distribution of wages in the 1st quarter after exit?</span>
+
+```{marginfigure, echo=TRUE}
+Calculate percentiles at the 10th, 25th, 50th, 75th and 90th percentiles using the PostgreSQL function `percentile_cont` in the 1st quarter after exit. 
+```
+
+```yaml
+query <- "SELECT unnest(
+                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+                   WITHIN GROUP (ORDER BY wages)
+                ) AS earnings_value,
+                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+FROM ada_tdc_2020.wage_2016q4
+WHERE job_yr_q = '2017-01-01'
+```
+```{marginfigure, echo=TRUE}
+**Checkpoint 2 Learning Objectives**:     
+Adding multiple placeholders in different places in the SQL query using `sprintf`
+```
+<span style="color:red; font-weight: bold;">CHECKPOINT 2:</span>
+
+Modify the queries using the `sprintf` function to make it easy to re-run for the 2009 cohort. 
+
+Modify queries used to produce these measures:  
+- Number of jobs   
+- Number of people working those jobs   
+- Distribution of earnings in a quarter after exit (you will need 2 placeholders - table and quarter).    
+
+<span style="color:red; font-weight: bold; font-style: italic;">Solution:</span>
+
+```yaml
+query <- "SELECT 
+job_yr_q, count(distinct(ssn))
+FROM ada_tdc_2020.wage_2016q4
+WHERE job_yr_q = '2017-01-01'"
+```
+turns into 
+
+```yaml
+table_name <- "ada_tdc_2020.wage_2016q4"
+job_yr_q <- '2017-01-01' 
+
+base_query <- "SELECT job_yr_q, count(distinct(ssn))
+FROM ada_tdc_2020.%s
+WHERE job_yr_q = '%s'"
+
+query <- sprintf(base_query, table_name, job_yr_q)
+```
+```{marginfigure, echo=TRUE}
+**Checkpoint 3 Learning Objectives**:   
+Compare distribution of earnings in different cohorts and quarters since exit, using the parameterized query created in **Checkpoint 2**
+```
+
+<span style="color:red; font-weight: bold;">CHECKPOINT 3:</span>
+With the parameterized query created in **Checkpoint 2**, calculate the distribution of earnings for:  
+- 2016 Q4 Cohort, 5 months post-exit  
+- 2009 Q1 Cohort, 1 month post-exit  
+- 2009 Q1 Cohort, 5 months post-exit  
+
+
+From now on, we will parameterize all SQL queries where we can, since the goal of our analyses is to compare two cohorts at different points after they exit TANF.
+
+<span style="color:green; ">How many jobs does each individual have?</span>
+
+Calculate number of jobs and total wages per person in a given quarter post-exit. In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the `year` and `quarter` columns (intead of `job_yr_q`) to demonstrate use of the `%d` placeholder.
+
+```yaml
+year <- 2017
+quarter <- 1
+table_name <- "wage_2016q4"
+
+
+base_query<- "SELECT
+ssn, sum(wages) as tot_wages, count(*) as num_jobs
+FROM ada_tdc_2020.%s
+WHERE year = %d and quarter = %d
+GROUP BY ssn
+ORDER BY ssn
+limit 100;"
+
+query <- sprintf(base_query,table_name,year,quarter)
+```
+
+<span style="color:green; ">What is the distribution of number of jobs across all TANF leavers in the cohort?</span>
+
+We just saw a non-random sample of the number of jobs per person. Now, we calculate a distribution to give us a fuller picture.
+
+`r margin_note('i did a distribition on this - it wasnt in the tdc 2019 notebook')`
+
+```yaml
+cohort <- "2016q4"
+year <- 2017
+quarter <- 1
+
+base_query <- "SELECT 
+              unnest(
+                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+                   WITHIN GROUP (ORDER BY a.num_jobs)
+                ) AS num_jobs,
+              unnest(
+                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+                   WITHIN GROUP (ORDER BY a.tot_wages)
+                ) AS wages,
+                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+FROM (
+SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs
+FROM ada_tdc_2020.wage_%s
+WHERE year = %d and quarter = %d
+GROUP BY ssn
+ORDER BY ssn) as a"
+
+query <- sprintf(base_query, cohort, year, quarter)
+
+df_jobs_wages <- dbGetQuery(con,query)
+```
+
+*Stable Employment*
+
+What do we mean when we say stable employment? There are a number of measures that speak to the stability of employment: full quarter employment, full year employment, or employment earning over a certain threshold. Here, we will calculate full quarter employment, meaning employment at the same firm for 3 consecutive quarters. This is a `CROSS JOIN` and in order to parameterize, we can still use `sprintf` but the placeholder is `%1$s` instead of `%s`. We also use the `rep` function to generate the input to `sprintf`.
+
+`r margin_note('get full quarter employment and other metrics from OSU notebook')`
+
+```yaml
+
+cohort <- "2016Q4"
+
+base_query <- "SELECT
+COUNT(DISTINCT(a.ssn))
+FROM ada_tdc_2020.wage_%1$s a,
+ada_tdc_2020.wage_%1$s b,
+ada_tdc_2020.wage_%1$s c
+WHERE a.ssn = b.ssn and a.uiacct = b.uiacct and 
+a.job_yr_q = (b.job_yr_q - '3 month'::interval)::date AND
+a.job_yr_q = (c.job_yr_q - '3 month'::interval)::date"
+
+query <- sprintf(base_query,rep(cohort,3))
+```
+
+<span style="color:red; font-weight: bold;">CHECKPOINT 4:</span>
+We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate it for the 2009 Q1 cohort.
+
+`r margin_note('come up with a better checkpoint')`
+
+## Employer
+**Summary Statistics: Employer Characteristics**
+
+**Guiding Questions:**  
+
+We want to look at characteristics of firms that employ TANF leavers and all employers. TANF Employers are those employers who 
+ `r margin_note('does stable employment mean wages paid to stably employed individuals? confirm that we are looking at employers that employ in the 1st quarter after exit')`
+
+1.  What are the characteristics of all employers? Employers hiring TANF recipients?  
+
+    - Employment (total, stable)
+    - Payroll (total, average, stable)
+    - Industry
+    - Other measures (turnover, earnings of workers in different percentiles)
+    
+    
+<span style="color:green; ">What is the employment (total and stable) of employers?</span>
+
+```{marginfigure ECHO = TRUE}
+**Columns**
+  
+`uiacct` - firm identifier 
+`naics_3_digit` - NAICS code indicating industry type
+`size` - # unique SSNs employed at the firm in the first quarter post-exit
+```
+
+
+We begin looking at characteristics of the firms that employ TANF leavers in our cohorts. The tables we will read from are `ada_tdc_2020.tanf_2016q4_empl` and `ada_tdc_2020.tanf_2009q1_empl`.
+
+<span style="color:green; ">In which industries do leavers find stable employment?</span>
+
+```yaml
+cohort <- "2016q4"
+
+base_query <- "SELECT *
+FROM ada_tdc_2020.tanf_%s_empl
+limit 100;
+
+
+query <- sprintf(base_query, cohort)
+
+df <- dbGetQuery(con, query)
+```
+
+We will answer this by aggregating with the `group_by` and `count` functions from `dplyr` (part of the `tidyverse`). This is our first time aggregating in R - all previous aggregations were done in SQL.
+
+Pipe operator `%>%`
+
+```yaml
+df %>% dplyr::group_by(naics_3_digit) %>% count()
+```
+<span style="color:green; ">How many individuals does the firm employ?</span>
+
+Again we will answer this using R - specifically the `quantile` function from the `stats` library.
+
+```yaml
+stats::quantile(df$size, probs = c(0.1,0.25,0.5,0.75,0.9))
+
+```
+**I'm pretty sure the remaining questions below do NOT go in data exploration - instead, ML prep like OSU**
+1.  How many individuals does the firm employ? Total? `r margin_note('julia included a question about how many ppl does the firm stably employ - just want to make sure that belongs in data exploration. confirm that these earnings measures for the firm side should be here - i think they are in ML prep in OSU')`
+1.  What are the wages paid by the firm? Calculate total, average and stable wages.   
+1.  Other measures (turnover, earnings of workers in different industries)    
+
+ 

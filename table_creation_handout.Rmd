@@ -1,0 +1,381 @@
+---
+title: "Table Creation Handout"
+author: "Coleridge"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: 
+    margin_references: true
+    toc: true
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(knitr)
+library(yaml)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+
+code_snips_file <-"/Users/sophierand/Desktop/tdc_handouts/code_snips.yml"
+code_snips_list <- yaml::read_yaml(code_snips_file, fileEncoding = "UTF-8")
+
+code_snips <- as.data.frame(matrix(unlist(code_snips_list), nrow=length(code_snips_list), byrow=TRUE))
+colnames(code_snips) <- names(code_snips_list[[1]])
+
+```
+
+
+# Introduction
+
+```{marginfigure, echo=TRUE}
+See `Table Creation.ipynb`  
+```
+
+This document covers the specifications of cohort tables and the SQL queries used to generate them. 
+
+# TANF Tables
+```{marginfigure, echo=TRUE}
+There is one row per `ssn`; for individuals who had more than one spell ending in the exit period, the most recent spell is in the table (e.g., the spell with the latest report month where `tanf_end` == `TRUE`.)
+```
+TANF tables follow the naming convention: `ada_tdc_2020.tanf_<year>q<quarter>`. Each of these tables contains individuals who were primary recipients of TANF and had a spell ending in the year-quarter in the table name. The unit of analysis is `person-spell`. 
+
+Two tables were created in the TANF data: `ada_tdc_2020.tanf_2009q1` and `ada_tdc_2020.tanf_2016q4` which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. `r margin_note('See data dictionary *chapin_hall_model.xlsx*')` 
+
+## Form of Table
+
+```{marginfigure, echo=TRUE}
+`tanf_total_months` is sum of `tanf_spell_months` across all spells that the individual had.
+```
+
+```{r, echo = F}
+df <- data.frame(matrix(nrow = 4, ncol = 7))
+colnames(df)<-c("ssn","month","tanf_start","tanf_end","tanf_spell_months","tanf_total_months","county")
+
+df[,1] <- c("ssnA","ssnB","ssnC","ssnD")
+df[,2] <- c("200901","200902","200901","200903")
+df[,3] <- c(FALSE, TRUE, FALSE, FALSE)
+df[,4] <- c(TRUE, TRUE, TRUE, TRUE)
+df[,5] <- c(4,1,7,13)
+df[,6] <- c(10,1,18,13)
+df[,7] <- c(097, 052,095,173)
+
+kable(df,align=rep('c', 7))
+```
+
+## Specifications   
+
+_Inclusion Criteria_   
+- Spell ends ("exit") in a given quarter (2016 Q4 and 2009 Q1)  
+- Recipient is a primary recipient of TANF   
+
+_Characteristics_   
+- Earliest Time Stamp: quarter of exit   
+- Latest Time Stamp: 8 quarters post-exit
+
+
+## SQL Create Table Query
+```{marginfigure, echo=TRUE}
+`tanf_end = TRUE` indicates end of a spell    
+```
+
+```{marginfigure, echo=TRUE}
+`relat == 1` indicates that recipient is a primary recipient
+```
+
+_TANF Spells for recipients in 2009 Q1 Cohort_
+```yaml
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_2009q1"]`
+
+```
+
+_TANF Spells for recipients in 2016 Q4 Cohort_
+```yaml
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_2016q4"]`
+
+
+```
+
+
+These queries were generated using the `sprintf` function  
+_TANF Spells for recipients in Cohort (flexible query)_
+```yaml
+
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_sprintf_query_inputs"]`
+
+
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_sprintf_query"]`
+
+
+```
+
+# Wage Record Tables
+
+Wage tables follow the naming convention: `ada_tdc_2020.tanf_wage_<year><quarter>`. Each of these contains all wage records for the SSNs in the TANF cohort tables. This is a longitudinal file and records span from the quarter of exit until 8 quarters post exit. The tables were created using the UI Wage Record data: `ada_tdc_2020.tanf_wage_2016q4` and
+`ada_tdc_2020.tanf_wage_2009q1` which contain job and wage data. The unit of analysis is a `person-job`.
+
+
+## Specification
+
+_Inclusion Criteria_     
+- Contains ssns that were in the corresponding cohort     
+- Wage record data for exit-quarter and 8 quarters post-exit   
+ 
+_Characteristics_    
+- Earliest Time Stamp: quarter of exit     
+- Latest Time Stamp: 8 quarters post-exit   
+
+## Form of Table
+
+
+```{r, echo = F}
+wage_df <- data.frame(matrix(nrow = 4, ncol = 6))
+colnames(wage_df)<-c("ssn","year","quarter","uiacct","wages","job_yr_q")
+
+wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD")
+wage_df$year<-c(2010,2010,2010,2011)
+wage_df$quarter <-  c(2,3,1,1)
+wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl")
+wage_df$wages <- c(1291,200,3866,1928)
+wage_df$job_yr_q<- c("2010-04-01","2010-07-01","2010-01-01","2011-01-01")
+
+
+kable(wage_df,align=rep('c', 6))
+```
+
+## SQL Create Table Query
+
+_Wages for Individuals in 2009 Q1 Cohort_
+
+```yaml
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_wage_2009q1"]`
+
+```
+
+_Wages for Individuals in 2016 Q4 Cohort_
+```yaml
+`r code_snips$code[code_snips$title=="ada_tdc_2020.tanf_wage_2016q4"]`
+
+```
+
+# Employer-Wage Record Tables
+
+Employer tables are base tables for generating employer characteristics like 
+
+All Employment:   
+
+    - total payroll  
+    - average payroll  
+    - total employment  
+    - earnings at the 25th percentile  
+    - earnings at the 75th percentile  
+
+Stable Employment:   
+
+    - total full quarter payroll  
+    - average full quarter payroll  
+    - total full quarter employment  
+    
+    
+```{marginfigure, echo=TRUE}
+Firms who employ TANF leavers are determined by filtering for firms where a `uiacct` (person identifier) appears in their wage records. 
+```
+Tables will be created for all firms, in two time periods. In Data Exploration, we will filter this table to look at characteristics of firms that employ TANF leavers.
+
+## Specification   
+
+`r margin_note('confirm that the time specifications on this are correct')`
+
+_Inclusion Criteria_    
+
+    - Contains wage data for all firms   
+    - Wage records in Exit quarter + 2 quarters post-exit  
+
+_Characteristics_     
+
+    - Earliest Time Stamp: quarter of exit   
+    - Latest Time Stamp: 2 quarters post-exit
+
+## Form of Table
+
+
+```{r, echo = F}
+wage_df <- data.frame(matrix(nrow = 4, ncol = 10))
+colnames(wage_df)<-c("ssn","year","quarter","uiacct","fein","wages","naics_3_digit", "cnty","egr","id")
+
+wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD")
+wage_df$year<-c(2010,2010,2010,2011)
+wage_df$quarter <-  c(2,3,1,1)
+wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl")
+wage_df$fein <- rep('fein', 4)
+wage_df$wages <- c(1291,200,3866,1928)
+wage_df$naics_3_digit<-c(447,772,624,724)
+wage_df$cnty <- rep('a county code', 4)
+wage_df$egr <- rep("?",4)
+wage_df$id <- rep("?",4)
+
+kable(wage_df,align=rep('c', 10))
+```
+
+## SQL Create Table Query
+
+_All Employers with wages in 2016Q4 exit quarter + 2 quarters_
+
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_wage_2016q4"]`
+
+```
+
+_All Employers with wages in 2009Q1 exit quarter + 2 quarters_
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_wage_2009q1"]`
+
+```
+
+
+# Employer Characteristics Tables
+
+## Form of Table
+```{marginfigure, echo=TRUE}
+`naics_3_digit` is the industry identifier for business. 
+
+**CLayton** - is it confusing that there is a year/quarter field since theres only 1 in this dataset?
+```
+
+```{r, echo = F, fig.fullwidth = TRUE}
+empl_df <- data.frame(matrix(nrow = 4, ncol = 13))
+colnames(empl_df)<-c("fein","naics_3_digit", "year","quarter","job_yr_q","tot_employment",
+                     "tot_earnings","avg_earnings","bottom_25_earnings","top_25_earnings",
+                     "full_quarter_employment","full_quarter_earnings","full_quarter_avg_earnings")
+
+empl_df$fein <- rep('fein', 4)
+empl_df$naics_3_digit<-c(447,772,624,724)
+empl_df$year<-c(2010,2010,2010,2011)
+empl_df$quarter <-  c(2,3,1,1)
+empl_df$job_yr_q<- c("2010-04-01","2010-07-01","2010-01-01","2011-01-01")
+empl_df$tot_employment <- NA
+empl_df$tot_earnings <- NA
+empl_df$avg_earnings <- NA
+empl_df$bottom_25_earnings <- NA
+empl_df$top_25_earnings <- NA
+empl_df$full_quarter_employment <- NA
+empl_df$full_quarter_earnings <- NA
+empl_df$full_quarter_avg_earnings <- NA
+
+kable(empl_df)
+```
+
+
+## Specifications
+
+The base table for employment characteristics are wages from firms in the quarter of exit and 2 quarters post-exit. Tables are `all_empl_wage_2016q4` and `all_empl_wage_2009q1`.
+
+`r margin_note('confirm that the time specifications on this are correct')`
+
+_Inclusion Criteria_    
+    - Wage records for firms in quarter post-exit 
+    - Contains wage data for all firms   
+    - Wage records in Exit quarter + 2 quarters post-exit  
+
+_Characteristics_  
+
+The below employment and earnings measures are calculated for wages in the quarter after exit.   
+
+    - total payroll  - sum(wages) in reference quarter  
+    - average payroll  - sum(wages)/count(ssn) in reference quarter  
+    - total employment  - count(ssn) in reference quarter  
+    - earnings at the 25th percentile    
+    - earnings at the 75th percentile    
+
+The below measures, calculated on _stably employed individuals_, defined as individuals employed for 3 consecutives quarters by the same firm, are calculated with a reference quarter of the quarter after exit (2009 Q2 and 2017 Q1).
+```{marginfigure, echo=TRUE}
+For more on these earnings and employment measures, see the Bureau of Labor Statistics' [Quarterly Workforce Indicators 101](https://qwiexplorer.ces.census.gov/static/explore.html#x=0&g=0)
+```
+
+    - total full quarter payroll  
+    - average full quarter payroll  
+    - total full quarter employment  
+    
+
+## SQL Create/Alter/Update Table Query
+
+Employer characteristics are developed with SQL `CREATE`, `ALTER`, and `UPDATE` statements. 
+
+_2016 Employers_
+```{marginfigure, echo=TRUE}
+The wage records are filtered for the quarter post-exit (Q1 2017), which will be the _reference quarter_ for the full-quarter (stable) employment measures.
+```
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_char_2016q4"]`
+
+```
+
+
+Alter table to add columns for stable employment indicators
+
+```yaml
+`r code_snips$code[code_snips$title=="alter_all_empl_char_2016q4"]`
+
+```
+
+Update statement to populate those values per firm
+
+```{marginfigure, echo=TRUE}
+A `CROSS JOIN` is employed to create a longitudinally linked file. The CROSS JOIN is done by _crossing_ the table with itself three times, since full-quarter employment requires at least 3 months of employment at hte same firm. See [Appendix](#Appendix) for more on the `CROSS JOIN`.
+```
+```yaml
+`r code_snips$code[code_snips$title=="update_all_empl_char_2016q4"]`
+
+```
+
+
+_2009 Employers_
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_char_2009q1"]`
+
+```
+
+Alter table to add columns for stable employment indicators
+
+```yaml
+`r code_snips$code[code_snips$title=="alter_all_empl_char_2009q1"]`
+
+```
+
+Update statement to populate those values per firm
+
+```yaml
+`r code_snips$code[code_snips$title=="update_all_empl_char_2009q1"]`
+
+```
+
+# Appendix
+## Full Quarter Employment
+
+
+```{marginfigure, echo=TRUE}
+`q2` is the reference quarter for the full-quarter employment calculation.
+
+$$fullQuarterEmployent = num_{ssn}$$   
+where $$ssn \in wagerecords_{q1,q2,q3}  $$   
+and $$employer_{q1}=employer_{q2}=employer_{q3}$$
+```
+
+
+_Form of the table using the `CROSS-JOIN`_
+```{r, echo = F, fig.fullwidth = TRUE}
+cross_join_df <- data.frame(matrix(nrow = 4, ncol = 10))
+colnames(cross_join_df)<-c("ssn","year","quarter","uiacct","fein","wages","job_yr_q","q1","q2","q3")
+
+cross_join_df$fein <- rep('fein', 4)
+cross_join_df$job_yr_q<- c("2010-04-01","2010-07-01","2010-01-01","2011-01-01")
+
+
+kable(cross_join_df)
+```
