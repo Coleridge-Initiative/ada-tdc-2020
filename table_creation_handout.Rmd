@@ -167,9 +167,11 @@ _Wages for Individuals in 2016 Q4 Cohort_
 
 ```
 
-# Employer-Wage Record Tables
+# Employer Characteristics Tables
 
-Employer tables are base tables for generating employer characteristics like 
+Employer tables are base tables for generating employer characteristics that we will help us answer the question about TANF leavers - whare the characteristics of employers that TANF leavers go on to find stable employmnet? 
+
+We will calculate the following meaures:
 
 All Employment:   
 
@@ -191,58 +193,43 @@ Firms who employ TANF leavers are determined by filtering for firms where an `ss
 ```
 Tables will be created for all firms, in two time periods. In Data Exploration, we will filter this table to look at characteristics of firms that employ TANF leavers.
 
-## Specification   
 
-`r margin_note('confirm that the time specifications on this are correct')`
-
-_Inclusion Criteria_    
-
-    - Contains wage data for all firms   
-    - Wage records in Exit quarter + 2 quarters post-exit  
-
-_Characteristics_     
-
-    - Earliest Time Stamp: quarter of exit   
-    - Latest Time Stamp: 2 quarters post-exit
-
-## Form of Table
+<!-- ## Form of Table -->
 
 
-```{r, echo = F}
-wage_df <- data.frame(matrix(nrow = 4, ncol = 10))
-colnames(wage_df)<-c("ssn","year","quarter","uiacct","fein","wages","naics_3_digit", "cnty","egr","id")
+<!-- ```{r, echo = F} -->
+<!-- wage_df <- data.frame(matrix(nrow = 4, ncol = 10)) -->
+<!-- colnames(wage_df)<-c("ssn","year","quarter","uiacct","fein","wages","naics_3_digit", "cnty","egr","id") -->
 
-wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD")
-wage_df$year<-c(2010,2010,2010,2011)
-wage_df$quarter <-  c(2,3,1,1)
-wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl")
-wage_df$fein <- rep('fein', 4)
-wage_df$wages <- c(1291,200,3866,1928)
-wage_df$naics_3_digit<-c(447,772,624,724)
-wage_df$cnty <- rep('a county code', 4)
-wage_df$egr <- rep("?",4)
-wage_df$id <- rep("?",4)
+<!-- wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD") -->
+<!-- wage_df$year<-c(2010,2010,2010,2011) -->
+<!-- wage_df$quarter <-  c(2,3,1,1) -->
+<!-- wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl") -->
+<!-- wage_df$fein <- rep('fein', 4) -->
+<!-- wage_df$wages <- c(1291,200,3866,1928) -->
+<!-- wage_df$naics_3_digit<-c(447,772,624,724) -->
+<!-- wage_df$cnty <- rep('a county code', 4) -->
+<!-- wage_df$egr <- rep("?",4) -->
+<!-- wage_df$id <- rep("?",4) -->
 
-kable(wage_df,align=rep('c', 10))
-```
+<!-- kable(wage_df,align=rep('c', 10)) -->
+<!-- ``` -->
 
-## SQL Create Table Query
+<!-- ## SQL Create Table Query -->
 
-_All Employers with wages in 2016Q4 exit quarter + 2 quarters_
+<!-- _All Employers with wages in 2016Q4 exit quarter + 2 quarters_ -->
 
-```yaml
-`r code_snips$code[code_snips$title=="all_empl_wage_2016q4"]`
+<!-- ```yaml -->
+<!-- `r code_snips$code[code_snips$title=="all_empl_wage_2016q4"]` -->
 
-```
+<!-- ``` -->
 
-_All Employers with wages in 2009Q1 exit quarter + 2 quarters_
-```yaml
-`r code_snips$code[code_snips$title=="all_empl_wage_2009q1"]`
+<!-- _All Employers with wages in 2009Q1 exit quarter + 2 quarters_ -->
+<!-- ```yaml -->
+<!-- `r code_snips$code[code_snips$title=="all_empl_wage_2009q1"]` -->
 
-```
+<!-- ``` -->
 
-
-# Employer Characteristics Tables
 
 ## Form of Table
 
@@ -301,8 +288,8 @@ The base table for employment characteristics are wages from firms in the quarte
 _Inclusion Criteria_    
 
     - Wage records for firms, starting in quarter post-exit   
-    - Contains wage data for all firms     
-    - For measures of stable employment, wage records for individuals who were employed in exit quarter + 2 quarters post-exit    
+    - All firms     
+    - For the measures of stable employment, wage records for individuals who were employed in exit quarter + 2 quarters post-exit by the same employer 
     
 _Characteristics_  
 
@@ -312,7 +299,7 @@ The below employment and earnings measures are calculated for wages in the quart
     - average payroll  - sum(wages)/count(ssn) in reference quarter  
     - total employment  - count(ssn) in reference quarter  
     - earnings at the 25th percentile    
-    - earnings at the 75th percentile    
+    - earnings at the 75th percentile  
 
 The below measures, calculated on _stably employed individuals_, defined as individuals employed for 3 consecutives quarters by the same firm, are calculated with a reference quarter of the quarter after exit (2009 Q2 and 2017 Q1).
 ```{marginfigure, echo=TRUE}
@@ -328,9 +315,19 @@ For more on these earnings and employment measures, see the Bureau of Labor Stat
 
 Employer characteristics are developed with SQL `CREATE`, `ALTER`, and `UPDATE` statements. 
 
-_2016 Employers_
+**2016Q4 Cohort**    
+
+_All Employers with wages in 2016Q4 exit quarter + 2 quarters_
+
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_wage_2016q4"]`
+
+```
+
+
+_Earnings/Employment, all employment, 1st quarter post-exit_
 ```{marginfigure, echo=TRUE}
-The wage records are filtered for the quarter post-exit (Q1 2017), which will be the _reference quarter_ for the full-quarter (stable) employment measures.
+Earnings/employment measures are calculated at a point-in-time, giving a snapshot of the firm. The wage records are filtered for the quarter post-exit (Q1 2017).
 ```
 ```yaml
 `r code_snips$code[code_snips$title=="all_empl_char_2016q4"]`
@@ -356,15 +353,22 @@ A `CROSS JOIN` is employed to create a longitudinally linked file. The CROSS JOI
 
 ```
 
-Using that base table, we calculate the full-quarter employment metrics and update.
+Using that base table, we calculate the full-quarter employment metrics and update the characteristics table.
 
 ```yaml
 `r code_snips$code[code_snips$title=="update_all_empl_char_2016q4_from_base"]`
 
 ```
 
+**2009Q1 Cohort**
 
-_2009 Employers_
+_All Employers with wages in 2009Q1 exit quarter + 2 quarters_
+```yaml
+`r code_snips$code[code_snips$title=="all_empl_wage_2009q1"]`
+```
+
+_Earnings/Employment, all employment, 1st quarter post-exit_
+
 ```yaml
 `r code_snips$code[code_snips$title=="all_empl_char_2009q1"]`
 
@@ -405,11 +409,12 @@ and $$employer_{q1}=employer_{q2}=employer_{q3}$$
 The table needed to calculate employer characteristics, e.g. the full-quarter employment measures, arises from a `CROSS JOIN` of wage record tables. The cross join is done on three keys: `ssn`, `fein` and `job_yr_q`, to ensure that the table only includes individuals who were employed in _consecutive_ quarters, at the _same job_ (denoted by `fein`).
 
 ## Specifications
-_Inclusion Criteria_   
-- Inidividuals who had three consecutive quarters of employment at the same firm
-- Looking at stably employed inidividuals with a reference quarter as the first quarter after exit of our TANF cohorts
+_Inclusion Criteria_     
 
-The form of the table is equivalent to that of the wage tables. However, only those individuals who were employed for three consective quarters, beginning with the exit quarter, are considered _stably employed_ and are in this table and therefore contribute to the aggregate statistics. 
+    - Individuals who had three consecutive quarters of employment at the same firm  
+    - Looking at stably employed inidividuals with a reference quarter as the first quarter after exit of our TANF cohorts
+
+The form of the table is equivalent to that of the wage tables. However, only those individuals who were employed for three consective quarters, beginning with the exit quarter, are considered _stably employed_ and are in this table and therefore contribute to the aggregate statistics. Individuals who do not have 3 consecutive quarters of employment by the same are filtered out by virtue of the fact that the `CROSS JOIN` keys are `ssn` (person), `fein` (firm) and `job_yr_q` (joined on consecutive year-quarters). 
 
 _Form of the table created with a `CROSS-JOIN`, the base table for employment outcomes_
 ```{r, echo = F, fig.fullwidth = TRUE}
@@ -424,5 +429,5 @@ cross_join_df$wages <- c(1291,200,3866,1928)
 cross_join_df$fein <- rep('fein', 4)
 cross_join_df$job_yr_q<- c("2010-04-01","2010-04-01","2010-04-01","2010-04-01")
 
-kable(cross_join_df)
+kable(cross_join_df,align=rep('c', 7))
 ```

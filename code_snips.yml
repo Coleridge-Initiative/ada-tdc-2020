@@ -74,7 +74,7 @@
   notebook: create_tables
   language: sql
   code: "DROP TABLE IF EXISTS ada_tdc_2020.tanf_wage_2009q1;
-  CREATE TABLE ada_tdc_2020.wage_2009q1
+\nCREATE TABLE ada_tdc_2020.wage_2009q1
 \nSELECT 
 \nssn, year, quarter, uiacct, wages, 
 \nformat('%s-%s-1', year, quarter*3-2) as job_yr_q
@@ -306,6 +306,172 @@
   \n\tgroup by fein,cnty) as b
   \nWHERE a.fein = b.fein;"  
 
+- title: "num_wage_jobs_by_ssn_input"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "\nyear <- 2017
+  \nquarter <- 1"
+
+- title: "num_wage_jobs_by_ssn_base_query"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "base_query <- \"SELECT
+  \nssn, sum(wages) as tot_wages, count(*) as num_jobs
+  \nFROM ada_tdc_2020.tanf_wage_2016q4
+  \nWHERE year = %d and quarter = %d
+  \nGROUP BY ssn
+  \nORDER BY ssn
+  limit 100;\""
+
+- title: "num_wage_jobs_by_ssn_query"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "query <- sprintf(base_query, year, quarter)
+  \ndf_2016 <- dbGetQuery(con,query)"
+
+- title: "dist_wages_num_jobs_input"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "cohort <- \"2016q4\"
+  \nyear <- 2017
+  \nquarter <- 1"
+
+- title: "dist_wages_num_jobs_base_query"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "SELECT 
+  \n\tunnest(
+    \n\t\tpercentile_cont(array[0.1,0.25,0.5,.075,0.9])
+    \n\t\tWITHIN GROUP (ORDER BY a.num_jobs)
+    \n\t\t) AS num_jobs,
+    
+  \n\tunnest(
+    \n\t\tpercentile_cont(array[0.1,0.25,0.5,.075,0.9])
+    \n\t\tWITHIN GROUP (ORDER BY a.tot_wages)
+    \n\t\t) AS wages,
+  
+  \n\tunnest(array[0.1,0.25,0.5,.075,0.9]) as percentile_value
+  \n FROM (
+    \n\t SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs
+    \n\t FROM ada_tdc_2020.tanf_wage_%s
+    \n\t WEHRE year   = %d and quarter = %d
+    \n\t GROUP BY ssn
+    \n\tORDER BY ssn) 
+    \t as a"
+
+- title: "dist_wages_num_jobs_query"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "query <- sprintf(base_query, cohort, year, quarter)
+  \ndf_jobs_wages <- dbGetQuery(con,query)"
+
+- title: "num_stable_employed"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "cohort <- \"2016Q4\"
+  \nbase_query <- \"SELECT
+  \nCOUNT(DISTINCT(a.ssn))
+  \nFROM ada_tdc_2020.tanf_wage_%1$s a,
+\nada_tdc_2020.tanf_wage_%1$s b,
+\nada_tdc_2020.tanf_wage_%1$s c
+\nWHERE a.ssn = b.ssn and a.uiacct = b.uiacct and 
+\na.job_yr_q = (b.job_yr_q - '3 month'::interval)::date AND
+\na.job_yr_q = (c.job_yr_q - '3 month'::interval)::date\"
+\n\nquery <- sprintf(base_query,rep(cohort,3))
+\n\nnum_stable_tanf_df <- dbGetQuery(con, query)"
+
+- title: "num_tanf_employed"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "cohort <- \"2016Q4\"
+  \nnum_employed_tanf_df <- dbGetQuery(con, 
+  \n\t\tsprintf(\"select count(distinct ssn) 
+  \n\t\tfrom ada_tdc_2020.tanf_wage_%1$s\",cohort))"
+
+- title: "rate_stable_employed"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "num_stable_tanf_df$count/num_employed_tanf_df$count"
 
 
+- title: "rate_stable_tanf"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "num_stable_tanf_df$count/num_tanf_df$count"
 
+- title: "tanf_cohort_preview"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT *
+\nFROM ada_tdc_2020.tanf_2016q4
+\nLIMIT 10;\"
+\n
+\ncohort_df <- dbGetQuery(con,query)"
+# - title: "num_rate_stable_employment"
+#   category: update_table
+#   section: wages
+#   notebook: data_exploration
+#   language: r
+#   code: "cohort <- \"2016Q4\"
+#   \nbase_query <- \"SELECT
+#   \nCOUNT(DISTINCT(a.ssn))
+#   \nFROM ada_tdc_2020.tanf_wage_%1$s a,
+# \nada_tdc_2020.tanf_wage_%1$s b,
+# \nada_tdc_2020.tanf_wage_%1$s c
+# \nWHERE a.ssn = b.ssn and a.uiacct = b.uiacct and 
+# \na.job_yr_q = (b.job_yr_q - '3 month'::interval)::date AND
+# \na.job_yr_q = (c.job_yr_q - '3 month'::interval)::date\"
+# \n\nquery <- sprintf(base_query,rep(cohort,3))
+# \n\nnum_stable_tanf_df <- dbGetQuery(con, query)"
+- title: "num_tanf"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "cohort <- \"2016Q4\"
+  \nnum_tanf_df <- dbGetQuery(con, 
+  \n\t\tsprintf(\"SELECT COUNT(DISTINCT ssn) 
+  \n\t\tFROM ada_tdc_2020.tanf_%s\",cohort))"
+- title: "rate_stable_tanf"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "num_stable_tanf_df$count/num_employed_tanf_df$count"
+
+- title: "rate_tanf_employed"
+  category: update_table
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "num_employed_tanf_df$count/num_tanf_df$count"
+  
+
+- title: "employer_char_preview"
+  category: select
+  section: employers
+  notebook: data_exploration
+  language: sql
+  code: "num_employed_tanf_df$count/num_tanf_df$count"

@@ -18,8 +18,19 @@ link-citations: yes
 ```{r setup, include=FALSE}
 library(tufte)
 # invalidate cache when the tufte version changes
+library(yaml)
+library(tidyverse)
+library(magrittr)
+setwd("/Users/sophierand/Desktop/ada-tdc-2020")
+# invalidate cache when the tufte version changes
 knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
+
+code_snips_file <-"/Users/sophierand/Desktop/ada-tdc-2020/code_snips.yml"
+code_snips_list <- yaml::read_yaml(code_snips_file, fileEncoding = "UTF-8")
+
+code_snips <- as.data.frame(matrix(unlist(code_snips_list), nrow=length(code_snips_list), byrow=TRUE))
+colnames(code_snips) <- names(code_snips_list[[1]])
 ```
 
 # Introduction
@@ -48,6 +59,7 @@ This handout mirrors the content in the Data Exploration notebook lesson which y
 Each section has:   
 
 - **Guiding Questions**, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.
+- **Ask Yourself Questions**, quick, bite-sized questions for your sake as a brain-check - to make sure we're all on the same page. in <span style="color:blue; ">blue</span>.
 - **Checkpoints**,  which are mini-exercises for you to complete, to be reviewed during "in-class" time. They are included in each section in <span style="color:red; ">red</span>.
 
 `r margin_note('these come from the syllabus')`
@@ -62,8 +74,6 @@ Each section has:
 1.  Become comfortable using the main tables in TANF and UI data.
 1.  Gain skills in creating basic descriptives of the datasets, aggregating data frames.
 1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in **Concepts of Data Exploration**.
-
-
 
 
 
@@ -228,13 +238,12 @@ head(in_df)
 ```
 
 ## Individual
-**Summary Statistics: TANF**
+### Summary Statistics: TANF
 
 **Guiding Questions:**  
 For individuals who had a spell ending in 2016 Q4, we want to know:    
 
-1.  For how long had these individuals been receiving benefits?    
-1.  What is the spell length distribution amongst these individuals?   
+1.  What is the distribution of spell lengths amongst individuals in our cohort?
 1.  What is the spell length at the 25th percentile?   
 1.  What are the spell lengths at the 10th, 25th, 50th, and 75th percentiles?
 
@@ -242,36 +251,37 @@ For individuals who had a spell ending in 2016 Q4, we want to know:
 See the [table_creation notebook](/Users/sophierand/Google Drive/tdc_handouts/table_creation_handout.html) for more on the cohorts.
 ```
 
-First, a quick look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016. We will compare employment measures for this cohort with another group of TANF recipients who exited in Q1 2009. 
+
+**Tables:**
+These calculations rely on `ada_tdc_2020.tanf_<year>q<quarter>` which contain data on the TANF spell which ended in the quarter specified in the cohort name. 
+
+First, a quick look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016. 
 
 ```yaml
-query <- "SELECT *
-FROM ada_tdc_2020.tanf_2016q4
-LIMIT 10;"
+`r code_snips$code[code_snips$title=="tanf_cohort_preview"]`
 
-cohort_df <- dbGetQuery(con,query)
 ```
-_**Ask Yourself**_: What is the difference in the unit of analysis between the TANF claims in `in_fssa.person_month` and the spells in `ada_tdc_2020.tanf_2016q4`? Inspect the outputs of `in_df` and `cohort_df`.
+<span style="color:blue;font-weight: bold; font-style: italic;">_**Ask Yourself: **_</span> What is the difference in the unit of analysis between the TANF claims in `in_fssa.person_month` and the spells in `ada_tdc_2020.tanf_2016q4`? Inspect the outputs of `in_df` and `cohort_df`.
 
-_**Ask Yourself**_: Which of the following are true?
+_Answer:_ `in_fssa.person_month` has monthly TANF transactions (disbursement of benefits) and the unit of analysis is `person-month` while `ada_tdc_2020.tanf_2016q4` has data on the most recent spell  (the spell that 'qualified' the individual to be in the cohort).
 
-1. n_ssns_tanf > n_ssns_cohort     
-1. n_ssns_tanf < n_ssns_cohort     
-1. n_ssns_cohort = n_rows_cohort   
-1. n_ssn_cohort <= n_rows_cohort
 
-<span style="color:green; ">For how long had the individuals in the 2016 Q4 cohort been receiving benefits?</span>.
+<span style="color:blue;font-weight: bold; font-style: italic;">_**Ask Yourself: **_</span>  Which of the following are true, where n_ssn_tanf = # persons in `in_fssa`?
+
+1. $$num_{ssn,tanf} > num_{ssn,cohort}$$  
+1. $$num_{ssn,tanf} < num_{ssn,cohort}$$  
+1. $$num_{ssn,cohort} = num_{rows,cohort}$$  
+1. $$num_{ssn,cohort} \leq num_{rows,cohort}$$  
+
+
+_Answer:_ 1, 2
 
 
 ```{marginfigure echo = TRUE} 
 The column `tanf_spell_months` has the number of months in that spell.
-
-**check this - this calculation should draw from in_fssa.person_month where ssn in cohort**
-
-rephrase as spell length distribution for the spell that ended and made them be part of the cohort
   
 ```
-The question is asking us about spell lengths, so we aggregate to count the number of person-spells with a given spell length.
+The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.
 
 ```yaml
 query <- "SELECT count(*),tanf_spell_months as length
@@ -279,18 +289,30 @@ FROM ada_tdc_2020.tanf_2016q4
 GROUP BY length
 ORDER BY count desc"
 
-df <- dbGetQuery(con, query)
+spell_count_df <- dbGetQuery(con, query)
 
 ```
 
 <span style="color:green; ">What is the distribution of spell lengths amongst these individuals?</span>
 
 
-We look at distribution of spell lengths in the 2016 Q4 cohort to answer this question.  Summary statistics, including quantile values, are generated using `summary(df)`.
+We look at distribution of spell lengths in the 2016 Q4 cohort to answer this question.  We can use `summary(df)` to generate the quartiles and the median. 
 
-`r margin_note('compare results from summary function to results generated with percentile_cont. I did a quick QA and they were not the same (nor were they the same for 2019 - investigate.')`
+```yaml
+summary(spell_count_df)
+```
 
-Using the `SQL` function `percentile_cont` to calculate the 25th percentile.  
+We can also use `quantile` to calculate specific percentiles:
+```{marginfigure echo = TRUE} 
+We use the `$` sign notation to specify the `length` column, which is the column we're looking for a distribution on. The `c` function is used to create a vector of numbers for the percentiles we are looking for.
+  
+```
+
+```yaml
+quantile(spell_count_df$length, c(0.1, 0.25, 0.5, 0.75, 0.8))
+```
+
+We can also use the `SQL` function `percentile_cont` to calculate the 25th percentile.  
 
 ```yaml
 query <- "SELECT
@@ -313,7 +335,7 @@ FROM ada_tdc_2020.tanf_2016q4
 <span style="color:red; font-weight: bold;">CHECKPOINT 1:</span>
 
 
-Parameterize the query used to calculate distribution of spell lengths using `sprintf` to calculate the distribution for the cohort exiting in Q1 2009. 
+Modify the query used to calculate distirbution of spell lengths to calculate the same for the 2009 Q1 cohort.  The cohort is stored in the the query used to calculate distribution of spell lengths using `sprintf` to calculate the distribution for the cohort exiting in Q1 2009. 
 
 <span style="color:red; font-weight: bold; font-style: italic;">Solution:</span>
 
@@ -330,31 +352,37 @@ FROM ada_tdc_2020.%s"
 query <- sprintf(base_query,tbl)
 ```
 
-**Summary Statistics: Wages**
+### Summary Statistics: Wages
 
 **Guiding Questions:**     
-For individuals who had a spell ending in 2016 Q4, we want to know:  
 
-1.  What are the earnings and employment measures for TANF leavers?
+We are interested in the earnings and employment characteristics of TANF leavers in their 1st and 5th quarters post-exit.
 ```{marginfigure echo = TRUE}
 Introduce `sprintf` function for making queries flexible by creating a placeholder for `yr_quarter` and the table name to calculate distribution of earnings in both cohorts, 1st and 5th quarter post exit   
 ```
-    - \# of jobs by post-exit quarter (1st and 5th)   
-    - \# persons working those jobs by post-exit quarter (1st and 5th)   
-    - Distribution of wages in 1st quarter post-exit   
-    - \# of jobs per ssn    
-    - Distribution of \# of jobs per ssn      
-1.  Do TANF recipients who live in different regions in Indiana have different employment outcomes?
-1.  In which industries do leavers find stable employment?
- 
+    
+    
+1.  What is the shape/form of the wage tables?  
+1.  How many total jobs did leavers hold in the 1st and 5th quarter post-exit?   
+1.  How many individuals were working those jobs?  
+1.  What was the distribution of wages in the 1st and 5th quarter post-exit?  
+1.  What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?
+1.  What was the proportion of TANF individuals with a job in the 8 quarters after their exit?
+1.  What was the proportion of TANF individuals with a stable job in the 8 quarters after their exit? `r margin_note('in 2019, this was how many had it in the year 2017, but i didnt see a calculation that filtered just to this year')`
+1.  How many TANF individuals do not have available wage data in our cohort?
+
+
+**Tables:**
+These calculations rely on `ada_tdc_2020.tanf_wage_<year>q<quarter>` which contain wage records for individuals in the corresponding cohort from the quarter of exit until 8 quarters post-exit.
+`r margin_note('we may want to talk over this one/confirm. based on 2019 tdc')`
+
 
 First, we preview the data in the wage cohort tables.
 
 ```yaml
 dbGetQuery(con, "SELECT * FROM ada_tdc_2020.wage_2016q4 limit 5;)
 ```
-
-<span style="color:green; ">What is the # of jobs by post-exit quarter (1st and 5th)?</span>
+<span style="color:green; "> How many total jobs did leavers hold in the 1st and 5th quarter post-exit?</span>
 
 ```{marginfigure, echo=TRUE}
 Aggregate the total number of jobs with `count(*)`, since each row is a job. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).
@@ -445,105 +473,101 @@ With the parameterized query created in **Checkpoint 2**, calculate the distribu
 
 From now on, we will parameterize all SQL queries where we can, since the goal of our analyses is to compare two cohorts at different points after they exit TANF.
 
-<span style="color:green; ">How many jobs does each individual have?</span>
+<span style="color:green; ">What is the employment and earnings (number of jobs, total earnings) of individuals in our cohort?</span>
 
 Calculate number of jobs and total wages per person in a given quarter post-exit. In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the `year` and `quarter` columns (intead of `job_yr_q`) to demonstrate use of the `%d` placeholder.
 
-```yaml
-year <- 2017
-quarter <- 1
-table_name <- "wage_2016q4"
 
-
-base_query<- "SELECT
-ssn, sum(wages) as tot_wages, count(*) as num_jobs
-FROM ada_tdc_2020.%s
-WHERE year = %d and quarter = %d
-GROUP BY ssn
-ORDER BY ssn
-limit 100;"
-
-query <- sprintf(base_query,table_name,year,quarter)
-```
-
-<span style="color:green; ">What is the distribution of number of jobs across all TANF leavers in the cohort?</span>
-
-We just saw a non-random sample of the number of jobs per person. Now, we calculate a distribution to give us a fuller picture.
-
-`r margin_note('i did a distribition on this - it wasnt in the tdc 2019 notebook')`
 
 ```yaml
-cohort <- "2016q4"
-year <- 2017
-quarter <- 1
+`r code_snips$code[code_snips$title=="num_wage_jobs_by_ssn_input"]`
 
-base_query <- "SELECT 
-              unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY a.num_jobs)
-                ) AS num_jobs,
-              unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY a.tot_wages)
-                ) AS wages,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM (
-SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs
-FROM ada_tdc_2020.wage_%s
-WHERE year = %d and quarter = %d
-GROUP BY ssn
-ORDER BY ssn) as a"
+`r code_snips$code[code_snips$title=="num_wage_jobs_by_ssn_base_query"]`
 
-query <- sprintf(base_query, cohort, year, quarter)
+`r code_snips$code[code_snips$title=="num_wage_jobs_by_ssn_query"]`
 
-df_jobs_wages <- dbGetQuery(con,query)
 ```
 
-*Stable Employment*
+We just saw a non-random sample of the number of jobs per person. Now, we calculate a distribution to give us a fuller picture.`r margin_note('i did a distribition on this - it wasnt in the tdc 2019 notebook')`
 
-What do we mean when we say stable employment? There are a number of measures that speak to the stability of employment: full quarter employment, full year employment, or employment earning over a certain threshold. Here, we will calculate full quarter employment, meaning employment at the same firm for 3 consecutive quarters. This is a `CROSS JOIN` and in order to parameterize, we can still use `sprintf` but the placeholder is `%1$s` instead of `%s`. We also use the `rep` function to generate the input to `sprintf`.
+<span style="color:green; ">What is the distribution of employment and earnings (number of jobs, total wages) of individuals in our cohorts?</span>
 
-`r margin_note('get full quarter employment and other metrics from OSU notebook')`
 
 ```yaml
+`r code_snips$code[code_snips$title=="dist_wages_num_jobs_input"]`
 
-cohort <- "2016Q4"
+`r code_snips$code[code_snips$title=="dist_wages_num_jobs_base_query"]`
 
-base_query <- "SELECT
-COUNT(DISTINCT(a.ssn))
-FROM ada_tdc_2020.wage_%1$s a,
-ada_tdc_2020.wage_%1$s b,
-ada_tdc_2020.wage_%1$s c
-WHERE a.ssn = b.ssn and a.uiacct = b.uiacct and 
-a.job_yr_q = (b.job_yr_q - '3 month'::interval)::date AND
-a.job_yr_q = (c.job_yr_q - '3 month'::interval)::date"
+`r code_snips$code[code_snips$title=="dist_wages_num_jobs_query"]`
 
-query <- sprintf(base_query,rep(cohort,3))
 ```
+
+Now we turn to looking at the participation of our TANF cohorts in the job market. 
+
+<span style="color:green; ">Among TANF leavers in our cohort, what was the proportion who had a job at any time during the 8 quarters post-exit?</span>  
+
+First we calculate the number of individuals who had any employment in the wages. This will be the numerator. 
+```yaml
+`r code_snips$code[code_snips$title=="num_tanf_employed"]`
+
+```
+
+Then we calculate the denominator, # individuals in the exit cohort, to find the proportion amongst all TANF leavers. 
+```yaml
+`r code_snips$code[code_snips$title=="num_tanf"]`
+
+`r code_snips$code[code_snips$title=="rate_tanf_employed"]`
+
+```
+
+Now we will repeat these proportion calculations, but look at the _stably employed_. What do we mean when we say stable employment? There are a number of measures that speak to the stability of employment: full quarter employment, full year employment, or employment earning over a certain threshold. Here, we will calculate full quarter employment, meaning employment at the same firm for 3 consecutive quarters. This is a `CROSS JOIN` and in order to parameterize, we can still use `sprintf` but the placeholder is `%1$s` instead of `%s`. We also use the `rep` function to generate the input to `sprintf`. See [table_creation](table_creation.html) for more. 
+
+<span style="color:green; ">Among all TANF leavers, what was the proportion of TANF individuals with a stable job at any time during the 8 quarters post-exit? Among employed TANF leavers, what was the proportion who were stably employed?</span>
+First we calculate the number of individuals who had three consecutive quarters of employment with the same employer. This will be the numerator. 
+```yaml
+
+`r code_snips$code[code_snips$title=="num_stable_employed"]`
+
+```
+
+Then we use the values calculated earlier as the denominators. First, we calculate the proportion amongst all employed TANF leavers. 
+
+```yaml
+`r code_snips$code[code_snips$title=="rate_stable_employed"]`
+
+```
+
+Then we calculate the proportion amongst all TANF leavers. 
+```yaml
+
+`r code_snips$code[code_snips$title=="rate_stable_tanf"]`
+
+```
+
 
 <span style="color:red; font-weight: bold;">CHECKPOINT 4:</span>
 We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate it for the 2009 Q1 cohort.
-
-`r margin_note('come up with a better checkpoint')`
+`r margin_note('come up with a better checkpoint?')`
 
 ## Employer
-**Summary Statistics: Employer Characteristics**
+### Summary Statistics: Employer Characteristics
 
 **Guiding Questions:**  
 
-We want to look at characteristics of firms that employ TANF leavers and all employers. TANF Employers are those employers who 
- `r margin_note('does stable employment mean wages paid to stably employed individuals? confirm that we are looking at employers that employ in the 1st quarter after exit')`
+We want to look at characteristics of firms that employ TANF leavers and all employers. TANF Employers are those employers who had at least one ssn from our TANF cohorts in their wage records. 
 
-1.  What are the characteristics of all employers? Employers hiring TANF recipients?  
+1.  What is the employment (total, stable) of firms employing TANF leavers?
+1.  What is the payroll/earnings (total, average, stable) of these firms?
+1.  In which industries do leavers find stable employment?
+1.  Other measures of (turnover, earnings of workers in different percentiles)
+    
+First let's take a quick look the form of the employer characteristics tables:
 
-    - Employment (total, stable)
-    - Payroll (total, average, stable)
-    - Industry
-    - Other measures (turnover, earnings of workers in different percentiles)
-    
-    
 <span style="color:green; ">What is the employment (total and stable) of employers?</span>
+<span style="color:green; ">In which industries do leavers find stable employment?</span>
 
+
+# SCRAP
 ```{marginfigure ECHO = TRUE}
 **Columns**
   
@@ -590,4 +614,19 @@ stats::quantile(df$size, probs = c(0.1,0.25,0.5,0.75,0.9))
 1.  What are the wages paid by the firm? Calculate total, average and stable wages.   
 1.  Other measures (turnover, earnings of workers in different industries)    
 
- 
+
+miscellaneous stuff from notebooks I was referencing  
+
+
+- for how long have they been recieving benefits?  
+- caan we find out how much each individual was making and how many jobs they had in 2016 Q4?
+- what was the proportion of TANF individuals with a stable job in 2017?
+- how many TANF individuals do not have available wage data in our cohort?
+
+NOte that we dont have a QWI notebook (should we?)
+- \# of jobs by post-exit quarter (1st and 5th)   
+    - \# persons working those jobs by post-exit quarter (1st and 5th)   
+    - Distribution of wages in 1st quarter post-exit   
+    - \# of jobs per ssn    
+    - Distribution of \# of jobs per ssn      
+
