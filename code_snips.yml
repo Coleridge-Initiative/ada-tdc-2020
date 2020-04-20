@@ -83,7 +83,6 @@
 \n((year IN (2009, 2010)) OR (year = 2011 and quarter = 1)) AND
 \nssn IN (select distinct ssn from ada_tdc_2020.tanf_2009q1)"
 
-
 - title: "ada_tdc_2020.tanf_wage_2016q4"
   category: create_table
   section: wages
@@ -148,8 +147,8 @@
   code: "ALTER TABLE ada_tdc_2020.all_empl_char_2009q1
   \nADD COLUMN full_quarter_employment int,
   \nADD COLUMN full_quarter_earnings int,
-  \nADD COLUMN full_quarter_avg_earnings int
-"
+  \nADD COLUMN full_quarter_avg_earnings int"
+
 - title: "update_all_empl_char_2009q1"
   category: update_table
   section: employer-characteristics
@@ -175,6 +174,46 @@
   \n\ta.job_yr_q = (b.job_yr_q - '3 month'::interval)::date 
   \n\tAND a.job_yr_q = (c.job_yr_q + '3 month'::interval)::date
   \n\tgroup by a.fein,a.cnty) as b
+  \nWHERE a.fein = b.fein;" 
+
+- title: "create_stable_empl_base_2009q1"
+  category: create_table
+  section: employer-characteristics-base
+  notebook: create_tables
+  language: sql
+  code: "DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2009q1;
+  \nCREATE TABLE ada_tdc_2020.stable_empl_base_2009q1 as
+  \nSELECT 
+  \na.*,
+  \n(b.job_yr_q - '3 month'::interval)::date  as lag_q
+  \n(c.job_yr_q + '3 month'::interval)::date as lead_q
+  \nFROM ada_tdc_2020.all_empl_wage_2009q1 a,
+  \nada_tdc_2020.all_empl_wage_2009q1 b,
+  \nada_tdc_2020.all_empl_wage_2009q1 c
+  \nWHERE
+  \na.ssn = b.ssn AND a.ssn = c.ssn AND
+  \na.fein = b.fein AND a.fein = c.fein AND
+  \na.job_yr_q = (b.job_yr_q - '3 month'::interval)::date 
+  \nAND a.job_yr_q = (c.job_yr_q + '3 month'::interval)::date"
+
+- title: "update_all_empl_char_2009q1_from_base"
+  category: update_table
+  section: employer-characteristics
+  notebook: create_tables
+  language: sql
+  code: "UPDATE ada_tdc_2020.all_empl_char_2009q1 as a
+  \nSET
+  \nfull_quarter_employment = b.full_quarter_employment,
+  \nfull_quarter_earnings = b.full_quarter_earnings
+  \nfull_quarter_avg_earnings = b.full_quarter_avg_earnings
+  \nFROM (
+  \n\tSELECT
+  \n\tfein, cnty,
+  \n\tCOUNT(DISTINCT(ssn)) as full_quarter_employment,
+  \n\tsum(wages) as full_quarter_earnings,
+  \n\tsum(wages)/COUNT(DISTINCT(ssn)) as full_quarter_avg_earnings
+  \n\tFROM ada_tdc_2020.stable_empl_base_2009q1
+  \n\tgroup by fein,cnty) as b
   \nWHERE a.fein = b.fein;" 
 
 - title: "all_empl_char_2016q4"
@@ -231,25 +270,25 @@
   \n\tgroup by a.fein,a.cnty) as b
   \nWHERE a.fein = b.fein;" 
 
-- title: "create_stable_empl_base_2009q1"
+- title: "create_stable_empl_base_2016q4"
   category: create_table
   section: employer-characteristics-base
   notebook: create_tables
   language: sql
-  code: "DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2009q1;
-  \nCREATE TABLE ada_tdc_2020.stable_empl_base_2009q1 as
+  code: "DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2016q4;
+  \nCREATE TABLE ada_tdc_2020.stable_empl_base_2016q4 as
   \nSELECT 
   \na.*,
   \n(b.job_yr_q - '3 month'::interval)::date  as lag_q
   \n(c.job_yr_q + '3 month'::interval)::date as lead_q
-  \n\tFROM ada_tdc_2020.all_empl_wage_2016q4 a,
-  \n\tada_tdc_2020.all_empl_wage_2016q4 b,
-  \n\tada_tdc_2020.all_empl_wage_2016q4 c
-  \n\tWHERE
-  \n\ta.ssn = b.ssn AND a.ssn = c.ssn AND
-  \n\ta.fein = b.fein AND a.fein = c.fein AND
-  \n\ta.job_yr_q = (b.job_yr_q - '3 month'::interval)::date 
-  \n\tAND a.job_yr_q = (c.job_yr_q + '3 month'::interval)::date"
+  \nFROM ada_tdc_2020.all_empl_wage_2009q1 a,
+  \nada_tdc_2020.all_empl_wage_2009q1 b,
+  \nada_tdc_2020.all_empl_wage_2009q1 c
+  \nWHERE
+  \na.ssn = b.ssn AND a.ssn = c.ssn AND
+  \na.fein = b.fein AND a.fein = c.fein AND
+  \na.job_yr_q = (b.job_yr_q - '3 month'::interval)::date 
+  \nAND a.job_yr_q = (c.job_yr_q + '3 month'::interval)::date"
 
 - title: "update_all_empl_char_2016q4_from_base"
   category: update_table
@@ -266,13 +305,11 @@
   \n\tfein, cnty,
   \n\tCOUNT(DISTINCT(ssn)) as full_quarter_employment,
   \n\tsum(wages) as full_quarter_earnings,
-  \n\tsum(wages)/COUNT(DISTINCT(a.ssn)) as full_quarter_avg_earnings
-  \n\tFROM ada_tdc_2020.stable_empl_base_2009q1
-  \n\tgroup by fein,cnty" 
-
-  
-
+  \n\tsum(wages)/COUNT(DISTINCT(ssn)) as full_quarter_avg_earnings
+  \n\tFROM ada_tdc_2020.stable_empl_base_2016q4
+  \n\tgroup by fein,cnty) as b
+  \nWHERE a.fein = b.fein;"  
 
 
 
-  
+

@@ -659,80 +659,61 @@ year = 2009 and quarter in (1,2,3)
 <table>
 <thead>
 <tr class="header">
-<th align="left">fein</th>
-<th align="right">naics_3_digit</th>
-<th align="right">year</th>
-<th align="right">quarter</th>
-<th align="left">job_yr_q</th>
-<th align="left">tot_employment</th>
-<th align="left">tot_earnings</th>
-<th align="left">avg_earnings</th>
-<th align="left">bottom_25_earnings</th>
-<th align="left">top_25_earnings</th>
-<th align="left">full_quarter_employment</th>
-<th align="left">full_quarter_earnings</th>
-<th align="left">full_quarter_avg_earnings</th>
+<th align="left">column</th>
+<th align="left">description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">fein</td>
-<td align="right">447</td>
-<td align="right">2010</td>
-<td align="right">2</td>
-<td align="left">2010-04-01</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
-<td align="left">fein</td>
-<td align="right">772</td>
-<td align="right">2010</td>
-<td align="right">3</td>
-<td align="left">2010-07-01</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
+<td align="left">naics_3_digit</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
-<td align="left">fein</td>
-<td align="right">624</td>
-<td align="right">2010</td>
-<td align="right">1</td>
-<td align="left">2010-01-01</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
+<td align="left">year</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
-<td align="left">fein</td>
-<td align="right">724</td>
-<td align="right">2011</td>
-<td align="right">1</td>
-<td align="left">2011-01-01</td>
+<td align="left">quarter</td>
 <td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">job_yr_q</td>
 <td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">tot_employment</td>
+<td align="left">count(ssn) in reference quarter</td>
+</tr>
+<tr class="odd">
+<td align="left">tot_earnings</td>
+<td align="left">sum(wages) in reference quarter</td>
+</tr>
+<tr class="even">
+<td align="left">avg_earnings</td>
+<td align="left">sum(wages)/count(ssn) in reference quarter</td>
+</tr>
+<tr class="odd">
+<td align="left">bottom_25_earnings</td>
+<td align="left">earnings, all individuals, at the 25th percentile</td>
+</tr>
+<tr class="even">
+<td align="left">top_25_earnings</td>
+<td align="left">earnings, all individuals, at the 75th percentile</td>
+</tr>
+<tr class="odd">
+<td align="left">full_quarter_employment</td>
 <td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">full_quarter_earnings</td>
 <td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
-<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">full_quarter_avg_earnings</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -742,9 +723,10 @@ year = 2009 and quarter in (1,2,3)
 <h2>Specifications</h2>
 <p>The base table for employment characteristics are wages from firms in the quarter of exit and 2 quarters post-exit. Tables are <code>all_empl_wage_2016q4</code> and <code>all_empl_wage_2009q1</code>.</p>
 <p><label for="tufte-mn-10" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-10" class="margin-toggle"><span class="marginnote">confirm that the time specifications on this are correct</span></p>
-<p><em>Inclusion Criteria</em><br />
-- Wage records for firms in quarter post-exit - Contains wage data for all firms<br />
-- Wage records in Exit quarter + 2 quarters post-exit</p>
+<p><em>Inclusion Criteria</em></p>
+<pre><code>- Wage records for firms in quarter post-exit   
+- Contains wage data for all firms     
+- Wage records in Exit quarter + 2 quarters post-exit    </code></pre>
 <p><em>Characteristics</em></p>
 <p>The below employment and earnings measures are calculated for wages in the quarter after exit.</p>
 <pre><code>- total payroll  - sum(wages) in reference quarter  
@@ -779,8 +761,24 @@ ADD COLUMN full_quarter_employment int,
 ADD COLUMN full_quarter_earnings int, 
 ADD COLUMN full_quarter_avg_earnings int
 </code></pre>
-<p>Update statement to populate those values per firm</p>
+<p>Create base table employing a <code>CROSS JOIN</code> that will be used to calculate the stable employment (full-quarter employment) measures and populated into the <code>all_empl_char_2016q4</code> columns we just created.</p>
 <p><label for="tufte-mn-13" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-13" class="margin-toggle"><span class="marginnote"><span style="display: block;">A <code>CROSS JOIN</code> is employed to create a longitudinally linked file. The CROSS JOIN is done by <em>crossing</em> the table with itself three times, since full-quarter employment requires at least 3 months of employment at hte same firm. See <a href="#Appendix">Appendix</a> for more on the <code>CROSS JOIN</code>.</span></span></p>
+<pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2016q4; 
+CREATE TABLE ada_tdc_2020.stable_empl_base_2016q4 as 
+SELECT 
+a.*, 
+(b.job_yr_q - &#39;3 month&#39;::interval)::date  as lag_q 
+(c.job_yr_q + &#39;3 month&#39;::interval)::date as lead_q 
+FROM ada_tdc_2020.all_empl_wage_2009q1 a, 
+ada_tdc_2020.all_empl_wage_2009q1 b, 
+ada_tdc_2020.all_empl_wage_2009q1 c 
+WHERE 
+a.ssn = b.ssn AND a.ssn = c.ssn AND 
+a.fein = b.fein AND a.fein = c.fein AND 
+a.job_yr_q = (b.job_yr_q - &#39;3 month&#39;::interval)::date 
+AND a.job_yr_q = (c.job_yr_q + &#39;3 month&#39;::interval)::date
+</code></pre>
+<p>Using that base table, we calculate the full-quarter employment metrics and update.</p>
 <pre class="yaml"><code>UPDATE ada_tdc_2020.all_empl_char_2016q4 as a 
 SET 
 full_quarter_employment = b.full_quarter_employment, 
@@ -788,19 +786,12 @@ full_quarter_earnings = b.full_quarter_earnings
 full_quarter_avg_earnings = b.full_quarter_avg_earnings 
 FROM ( 
     SELECT 
-    a.fein, a.cnty, 
-    COUNT(DISTINCT(a.ssn)) as full_quarter_employment, 
-    sum(a.wages) as full_quarter_earnings, 
-    sum(a.wages)/COUNT(DISTINCT(a.ssn)) as full_quarter_avg_earnings 
-    FROM ada_tdc_2020.all_empl_wage_2016q4 a, 
-    ada_tdc_2020.all_empl_wage_2016q4 b, 
-    ada_tdc_2020.all_empl_wage_2016q4 c 
-    WHERE 
-    a.ssn = b.ssn AND a.ssn = c.ssn AND 
-    a.fein = b.fein AND a.fein = c.fein AND 
-    a.job_yr_q = (b.job_yr_q - &#39;3 month&#39;::interval)::date 
-    AND a.job_yr_q = (c.job_yr_q + &#39;3 month&#39;::interval)::date 
-    group by a.fein,a.cnty) as b 
+    fein, cnty, 
+    COUNT(DISTINCT(ssn)) as full_quarter_employment, 
+    sum(wages) as full_quarter_earnings, 
+    sum(wages)/COUNT(DISTINCT(ssn)) as full_quarter_avg_earnings 
+    FROM ada_tdc_2020.stable_empl_base_2016q4 
+    group by fein,cnty) as b 
 WHERE a.fein = b.fein;
 </code></pre>
 <p><em>2009 Employers</em></p>
@@ -820,9 +811,25 @@ group by fein, cnty,naics_3_digit, year, quarter,job_yr_q;
 <pre class="yaml"><code>ALTER TABLE ada_tdc_2020.all_empl_char_2009q1 
 ADD COLUMN full_quarter_employment int, 
 ADD COLUMN full_quarter_earnings int, 
-ADD COLUMN full_quarter_avg_earnings int 
+ADD COLUMN full_quarter_avg_earnings int
 </code></pre>
-<p>Update statement to populate those values per firm</p>
+<p>Create base table employing a <code>CROSS JOIN</code> that will be used to calculate the stable employment (full-quarter employment) measures and populated into the <code>all_empl_char_2016q4</code> columns we just created.</p>
+<pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2009q1; 
+CREATE TABLE ada_tdc_2020.stable_empl_base_2009q1 as 
+SELECT 
+a.*, 
+(b.job_yr_q - &#39;3 month&#39;::interval)::date  as lag_q 
+(c.job_yr_q + &#39;3 month&#39;::interval)::date as lead_q 
+FROM ada_tdc_2020.all_empl_wage_2009q1 a, 
+ada_tdc_2020.all_empl_wage_2009q1 b, 
+ada_tdc_2020.all_empl_wage_2009q1 c 
+WHERE 
+a.ssn = b.ssn AND a.ssn = c.ssn AND 
+a.fein = b.fein AND a.fein = c.fein AND 
+a.job_yr_q = (b.job_yr_q - &#39;3 month&#39;::interval)::date 
+AND a.job_yr_q = (c.job_yr_q + &#39;3 month&#39;::interval)::date
+</code></pre>
+<p>Using that base table, we calculate the full-quarter employment metrics and update.</p>
 <pre class="yaml"><code>UPDATE ada_tdc_2020.all_empl_char_2009q1 as a 
 SET 
 full_quarter_employment = b.full_quarter_employment, 
@@ -830,19 +837,12 @@ full_quarter_earnings = b.full_quarter_earnings
 full_quarter_avg_earnings = b.full_quarter_avg_earnings 
 FROM ( 
     SELECT 
-    a.fein, a.cnty, 
-    COUNT(DISTINCT(a.ssn)) as full_quarter_employment, 
-    sum(a.wages) as full_quarter_earnings, 
-    sum(a.wages)/COUNT(DISTINCT(a.ssn)) as full_quarter_avg_earnings 
-    FROM ada_tdc_2020.all_empl_wage_2009q1 a, 
-    ada_tdc_2020.all_empl_wage_2009q1 b, 
-    ada_tdc_2020.all_empl_wage_2009q1 c 
-    WHERE 
-    a.ssn = b.ssn AND a.ssn = c.ssn AND 
-    a.fein = b.fein AND a.fein = c.fein AND 
-    a.job_yr_q = (b.job_yr_q - &#39;3 month&#39;::interval)::date 
-    AND a.job_yr_q = (c.job_yr_q + &#39;3 month&#39;::interval)::date 
-    group by a.fein,a.cnty) as b 
+    fein, cnty, 
+    COUNT(DISTINCT(ssn)) as full_quarter_employment, 
+    sum(wages) as full_quarter_earnings, 
+    sum(wages)/COUNT(DISTINCT(ssn)) as full_quarter_avg_earnings 
+    FROM ada_tdc_2020.stable_empl_base_2009q1 
+    group by fein,cnty) as b 
 WHERE a.fein = b.fein;
 </code></pre>
 </div>
