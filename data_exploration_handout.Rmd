@@ -6,6 +6,7 @@ output:
   tufte::tufte_html: 
     margin_references: true
     toc: true
+    toc_depth: 4
   tufte::tufte_handout:
     citation_package: natbib
     latex_engine: xelatex
@@ -39,12 +40,13 @@ The goal of the Data Exploration lesson is to provide a framework for describing
 
 We will answer the following questions:
 
+1.  What are different measures of the TANF experience?
 1.  What are the earnings and employment outcomes of TANF recipients?  
 1.  What are the characteristics of employers likely to hire TANF recipients?  
 
 _Policy Relevance: The TANF program “is designed to help needy families achieve self-sufficiency.” State agencies administering this federal program have an interest in understanding how TANF participation can support long-term, stable employment to achieve these goals. Administrative data on TANF participation joined with administrative data on earnings and employers can be used to describe the labor market outcomes of TANF recipients._
 
-# Lesson Structure
+## Lesson Structure
 
 The lesson is given over the course of two days - Concepts of Data Exploration and Applications of Data Exploration. 
 
@@ -58,22 +60,26 @@ This handout mirrors the content in the Data Exploration notebook lesson which y
 
 Each section has:   
 
-- **Guiding Questions**, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.
-- **Ask Yourself Questions**, quick, bite-sized questions for your sake as a brain-check - to make sure we're all on the same page. in <span style="color:blue; ">blue</span>.
-- **Checkpoints**,  which are mini-exercises for you to complete, to be reviewed during "in-class" time. They are included in each section in <span style="color:red; ">red</span>.
+- <span style="color:green;font-weight: bold; ">Guiding Questions</span>, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.
+- <span style="color:blue;font-weight: bold; ">Ask Yourself Questions</span>, quick, bite-sized questions to jog your brain and make sure we're all on the same page. in <span style="color:blue; ">blue</span>.
+- <span style="color:red;font-weight: bold; ">Checkpoints</span>,  which are mini-exercises for you to complete, to be reviewed during "in-class" time. They are included in each section in <span style="color:red; ">red</span>.
 
 `r margin_note('these come from the syllabus')`
-# Learning Objectives and Outcomes
+
+## Learning Objectives and Outcomes
 
 **Concepts of Data Exploration**
-1.   Become familiar with common measures of employment outcomes.
-1.   Begin to think about which measures are most important to their home state’s pilot project.
-1.   Be introduced to specifications of the cohorts.
-**Applications of Data Exploration**
-1.  Become comfortable querying the database with SQL queries in R.
-1.  Become comfortable using the main tables in TANF and UI data.
-1.  Gain skills in creating basic descriptives of the datasets, aggregating data frames.
-1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in **Concepts of Data Exploration**.
+
+1.   Become familiar with common measures of employment outcomes.  
+1.   Begin to think about which measures are most important to their home state’s pilot project.  
+1.   Be introduced to specifications of the cohorts.  
+
+**Applications of Data Exploration**`r margin_note('data_exploration.ipynb')`
+
+1.   Become comfortable querying the database with SQL queries in R.  
+1.   Become comfortable using the main tables in TANF and UI data.  
+1.   Gain skills in creating basic descriptives of the datasets, aggregating data frames.  
+1.   Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in **Concepts of Data Exploration**.  
 
 
 
@@ -107,10 +113,7 @@ Each section has:
 <!-- 1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed on Day 2.    -->
 
 
-# Lesson Content
-`r margin_note('data_exploration.ipynb')`
-
-## R Setup
+# R Setup
 Load libraries   
 `library(tidyverse)`  
 
@@ -125,9 +128,10 @@ Getting help on a library or function
 `?strptime`
 `?tidyverse`
 
-## Loading Data into R/Jupyter
+# Loading Data into R/Jupyter
 
-Establish connection with `DBI` and `RPostgreSQL` libraries 
+## Establish Database Connection
+We establish a connection with `DBI` and `RPostgreSQL` libraries 
 
 ```yaml
 drv <- dbDriver("PostgreSQL")
@@ -146,7 +150,7 @@ LIMIT 20;"
 
 query
 ```
-
+## Reading in the Data
 Queries are run with the function `dbGetQuery` from the `DBI` library. The function expects 2 inoputs - the database connection, `con`, and the `query`.
 
 ```yaml
@@ -154,7 +158,7 @@ df <- dbGetQuery(con,query)
 ```
 
 
-## What's in the database?
+# What's in the database?
 
 ```{marginfigure, echo=TRUE}
 Every SQL database has a metadata schema called `information_schema`
@@ -200,161 +204,230 @@ dbGetQuery(con,schema_query)
 ``` {marginfigure, echo = TRUE}
 Plaeholders are denoted by `%s` if the expected replacement value is a string; `%d` if the expected replacement value is an integer; run `?sprintf` for more replacement values.
 ```
-We will now _parameterize_ the query we just ran, using a string manipulation function called `sprintf`, which takes a string with placeholders, and their replacement value(s). A query that is parameterized is more flexible in that you can re-use queries and plug in new parameters (usually in the `FROM` or `WHERE` clause) without rewriting the query. This is useful for us in 2 ways: first, because we want to look at employment measures at different time points after exit from the TANF program; and second, because we want to compare these measures across different cohorts.
+We will now pause to _parameterize_ the query we just ran, using a string manipulation function called `sprintf`, which takes a string with placeholders, and their replacement value(s). A parameterized query is more flexible in that you can re-use queries and plug in new parameters (usually in the `FROM` or `WHERE` clause) without rewriting the entire query from scratch. We will use this to look at our two cohorts; and to calculate employer characteristics at different points in time.
 
-```{marginfigure, echo=TRUE}
 First we establish which variables we will want to swap out - here, `schema` and `tbl`.
-
-
-Then, we write a `base_query` with placeholders (denoted by `%s`) that indicate to the `sprintf` function where the replacement values go.
-
-
-Finally, we use the `sprintf` function, a string manipulation, to tie it all together.
-```
 
 ```yaml
 schema <-"in_fssa"
 tbl <- "person_month"
+```
+Then, we write a `base_query` with placeholders (denoted by `%s`) that indicate to the `sprintf` function where the replacement values go.
 
+```yaml
 base_query <- "SELECT * 
 FROM information_schema.columns
-WHERE table_schema = '%s' AND table_name = '%s'"
+WHERE table_schema = '%s' AND table_name = '%s'
+limit 20;"
+```
 
+Finally, we use the `sprintf` function to create the query string, which we run like usual with `dbGetQuery`.
+
+```yaml
 query <- sprintf(base_query, schema,tbl)
 
 dbGetQuery(con,query)
 ```
 
-Now let's start looking at the data we'll be using for this class. Take a look at what's in the `in_fssa` monthly person-level TANF claims. Soon, we will look at tables of pre-defined cohorts, whcih were derived from this `person_month` table. 
-
-```yaml
-query <- "SELECT *
-FROM in_fssa.person_month
-limit 20;"
-
-in_df <- dbGetQuery(con,query)
-
-head(in_df)
+```{marginfigure, echo=TRUE}
+**Checkpoint 1 Learning Objectives**:     
+Become comfortable updating values in a parameterized function by changing the value of `tbl`; gain familiarity with the format of the `in_fssa.case_month` table.
 ```
 
-## Individual
-### Summary Statistics: TANF
+### <span style="color:red">CHECKPOINT 1</span>
 
-**Guiding Questions:**  
+Get column metadata on the `case_month` table.
+
+With the parameterized query we just used,
+
+<ol type="a">
+  <li>Update the `tbl` variable to the case level table</li>
+  <li>Generate the new query</li>
+  <li>Run the new query</li>
+</ol>
+
+_Solution_
+1a
+```yaml
+`r code_snips$code[code_snips$title=="checkpoint1a_solution"]`
+
+```
+
+1b
+```yaml
+`r code_snips$code[code_snips$title=="checkpoint1b_solution"]`
+
+```
+
+1c
+```yaml
+`r code_snips$code[code_snips$title=="checkpoint1c_solution"]`
+
+```
+
+
+# Individual
+## Summary Statistics: TANF
+
+<span style="color:green;font-weight: bold;">Guiding Questions:</span>  
+
 For individuals who had a spell ending in 2016 Q4, we want to know:    
 
 1.  What is the distribution of spell lengths amongst individuals in our cohort?
 1.  What is the spell length at the 25th percentile?   
-1.  What are the spell lengths at the 10th, 25th, 50th, and 75th percentiles?
+1.  What are the spell lengths at the 10th, 25th, 50th, 75th and 90th percentiles?
 
 ```{marginfigure echo = TRUE}
-See the [table_creation notebook](/Users/sophierand/Google Drive/tdc_handouts/table_creation_handout.html) for more on the cohorts.
+See the [Table Creation Handout](table_creation_handout.html){target="_blank"} for more on how the cohorts were created.
 ```
 
 
 **Tables:**
 These calculations rely on `ada_tdc_2020.tanf_<year>q<quarter>` which contain data on the TANF spell which ended in the quarter specified in the cohort name. 
 
-First, a quick look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016. 
+First, a quick look at the `in_fssa.person_month` table, from which our cohort originates. 
+
+```yaml
+`r code_snips$code[code_snips$title=="tanf_person_preview"]`
+
+```
+
+Now let's look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016. 
 
 ```yaml
 `r code_snips$code[code_snips$title=="tanf_cohort_preview"]`
 
 ```
+```{marginfigure, echo=TRUE}
+**Checkpoint 2 Learning Objectives**:     
+Practice using SQL functions `LIMIT`, `WHERE`, and `COUNT`.
+
+```
+#### <span style="color:red">CHECKPOINT 2</span>
+
+
+Read in the 2009 Q1 TANF Cohort.</span>
+
+<ol type="a">
+  <li>Read in the first 20 rows of `ada_tdc_2020.tanf_2009q1`</li>
+  <li>Look at records where recipients had a spell ending in February 2009 (Hint: use `WHERE` and `rep_month`)</li>
+  <li>Count the number of distinct individuals in the file (Hint: `count(distinct(ssn))`</li>
+</ol>
+
+    
+_Solution:_
+
+2a
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint2a_solution"]`
+
+```
+2b
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint2b_solution"]`
+
+```
+2c
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint2c_solution"]`
+```
+
+
 <span style="color:blue;font-weight: bold; font-style: italic;">_**Ask Yourself: **_</span> What is the difference in the unit of analysis between the TANF claims in `in_fssa.person_month` and the spells in `ada_tdc_2020.tanf_2016q4`? Inspect the outputs of `in_df` and `cohort_df`.
 
-_Answer:_ `in_fssa.person_month` has monthly TANF transactions (disbursement of benefits) and the unit of analysis is `person-month` while `ada_tdc_2020.tanf_2016q4` has data on the most recent spell  (the spell that 'qualified' the individual to be in the cohort).
+_Answer:_ `in_fssa.person_month` has monthly TANF transactions (disbursement of benefits) and the unit of analysis is `person-month` while `ada_tdc_2020.tanf_2016q4` has data on the most recent spell  (the spell that qualified the individual to be in the cohort).
 
 
-<span style="color:blue;font-weight: bold; font-style: italic;">_**Ask Yourself: **_</span>  Which of the following are true, where n_ssn_tanf = # persons in `in_fssa`?
+<span style="color:blue;font-weight: bold; font-style: italic;">_**Ask Yourself: **_</span>  Which of the following are true, where $\ num_{ssn,tanf}$ = # persons in `in_fssa.person_month`, and $\ num_{ssn,cohort}$ = # persons in either of the cohorts?
 
-1. $$num_{ssn,tanf} > num_{ssn,cohort}$$  
-1. $$num_{ssn,tanf} < num_{ssn,cohort}$$  
-1. $$num_{ssn,cohort} = num_{rows,cohort}$$  
-1. $$num_{ssn,cohort} \leq num_{rows,cohort}$$  
+1. $\ num_{ssn,tanf} > num_{ssn,cohort}$  
+1. $\ num_{ssn,tanf} < num_{ssn,cohort}$   
+1. $\ num_{ssn,cohort} = num_{rows,cohort}$   
+1. $\ num_{ssn,cohort} \leq num_{rows,cohort}$  
 
 
 _Answer:_ 1, 2
 
+<span style="color:green; ">What is the distribution of spell lengths amongst individuals in our cohort?</span>
+
+The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.
 
 ```{marginfigure echo = TRUE} 
 The column `tanf_spell_months` has the number of months in that spell.
-  
 ```
-The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.
 
 ```yaml
-query <- "SELECT count(*),tanf_spell_months as length
-FROM ada_tdc_2020.tanf_2016q4
-GROUP BY length
-ORDER BY count desc"
+`r code_snips$code[code_snips$title=="spell_length_dist_query"]`
 
-spell_count_df <- dbGetQuery(con, query)
+`r code_snips$code[code_snips$title=="spell_length_dist"]`
 
 ```
 
-<span style="color:green; ">What is the distribution of spell lengths amongst these individuals?</span>
+We can use `min` and `max` to look at the range of values. We could have done this in SQL also, but since we have the dataframe handy, let's run these quick R commands.
 
-
-We look at distribution of spell lengths in the 2016 Q4 cohort to answer this question.  We can use `summary(df)` to generate the quartiles and the median. 
-
-```yaml
-summary(spell_count_df)
-```
-
-We can also use `quantile` to calculate specific percentiles:
 ```{marginfigure echo = TRUE} 
-We use the `$` sign notation to specify the `length` column, which is the column we're looking for a distribution on. The `c` function is used to create a vector of numbers for the percentiles we are looking for.
+We use the `$` sign notation to specify the `length` column, which is the column we're looking for descriptives on. 
   
 ```
 
 ```yaml
-quantile(spell_count_df$length, c(0.1, 0.25, 0.5, 0.75, 0.8))
+min(spell_count_df$length)
+max(spell_count_df$length)
+
 ```
 
-We can also use the `SQL` function `percentile_cont` to calculate the 25th percentile.  
+
+<span style="color:green; ">What is the spell length at the 25th percentile?</span>
+
+
+We use the `SQL` function `percentile_cont` to calculate spell lengths at the 25th percentile. There are R functions, like `quantile`, that can be used to calculate percentiles, but we conduct the manipulation with SQL to preserve compute resources.
 
 ```yaml
-query <- "SELECT
-percentile_cont(0.25) 
-WITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25
-FROM ada_tdc_2020.tanf_2016q4
+`r code_snips$code[code_snips$title=="spell_length_25tile"]`
+
 ```
+
+<span style="color:green; ">What are the spell lengths at the 10th, 25th, 50th, 75th and 90th percentiles?</span>
 
 We can extend the query to calculate other percentile values, and use `unnest` function to see the percentile value with the percentile.
 
 ```yaml
-query <- "SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY tanf_spell_months)
-                ) AS months,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM ada_tdc_2020.tanf_2016q4
+`r code_snips$code[code_snips$title=="spell_length_percentiles"]`
+
 ```
 
-<span style="color:red; font-weight: bold;">CHECKPOINT 1:</span>
+```{marginfigure, echo=TRUE}
+**Checkpoint 3 Learning Objectives**:     
+Practice writing a parameterized query and use it to generate data for the comparison cohort. 
+```
 
+#### <span style="color:red;">CHECKPOINT 3</span>
+Calculate spell lengths at different percentiles for the 2009 Q1 Cohort.
 
-Modify the query used to calculate distirbution of spell lengths to calculate the same for the 2009 Q1 cohort.  The cohort is stored in the the query used to calculate distribution of spell lengths using `sprintf` to calculate the distribution for the cohort exiting in Q1 2009. 
+Modify the query used to calculate spell length at the 10th, 25th, 50th, 75th and 90th percentile for the cohort exiting TANF in Q1 of 2009 (`ada_tdc_2020.tanf_2009q1`)
 
-<span style="color:red; font-weight: bold; font-style: italic;">Solution:</span>
+<ol type="a">
+  <li>Parameterize the query with `sprintf`, adding a placeholder for the table.</li>
+  <li>Regenerate the query for the 2009 Q1 cohort and retrieve new results from the database.</li>
+  </li>
+</ol>
 
+_Solution_   
+
+3a
 ```yaml
-tbl <- tanf_2009q1
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint3a_solution"]`
 
-base_query <- "SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY tanf_spell_months)
-                ) AS months,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM ada_tdc_2020.%s"
+```
+3b
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint3b_solution"]`
 
-query <- sprintf(base_query,tbl)
 ```
 
-### Summary Statistics: Wages
+## Summary Statistics: Wages
 
-**Guiding Questions:**     
+<span style="color:green;font-weight: bold;">Guiding Questions:</span>  
 
 We are interested in the earnings and employment characteristics of TANF leavers in their 1st and 5th quarters post-exit.
 ```{marginfigure echo = TRUE}
@@ -365,50 +438,41 @@ Introduce `sprintf` function for making queries flexible by creating a placehold
 1.  What is the shape/form of the wage tables?  
 1.  How many total jobs did leavers hold in the 1st and 5th quarter post-exit?   
 1.  How many individuals were working those jobs?  
-1.  What was the distribution of wages in the 1st and 5th quarter post-exit?  
+1.  What was the distribution of wages in the 1st quarter post-exit?  
 1.  What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?
-1.  What was the proportion of TANF individuals with a job in the 8 quarters after their exit?
-1.  What was the proportion of TANF individuals with a stable job in the 8 quarters after their exit? `r margin_note('in 2019, this was how many had it in the year 2017, but i didnt see a calculation that filtered just to this year')`
-1.  How many TANF individuals do not have available wage data in our cohort?
+1.  What was the proportion of individuals in our TANF cohorts with a job during the year after their exit? Proportion with a stable job?
+1.  How many individuals in our cohorts do not appear in the wage records during the 8 quarters after their exit?
 
 
 **Tables:**
 These calculations rely on `ada_tdc_2020.tanf_wage_<year>q<quarter>` which contain wage records for individuals in the corresponding cohort from the quarter of exit until 8 quarters post-exit.
 `r margin_note('we may want to talk over this one/confirm. based on 2019 tdc')`
 
-
-First, we preview the data in the wage cohort tables.
+<span style="color:green; "> What is the shape/form of the wage tables?  </span>
 
 ```yaml
-dbGetQuery(con, "SELECT * FROM ada_tdc_2020.wage_2016q4 limit 5;)
+`r code_snips$code[code_snips$title == "wage_cohort_preview"]`
+
 ```
-<span style="color:green; "> How many total jobs did leavers hold in the 1st and 5th quarter post-exit?</span>
+<span style="color:green; "> How many total jobs did leavers from the 2016 Q4 cohort hold in the 1st and 5th quarter post-exit?</span>
 
 ```{marginfigure, echo=TRUE}
 Aggregate the total number of jobs with `count(*)`, since each row is a job. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).
 ```
 
 ```yaml
-query <- "SELECT
-job_yr_q, count(*)
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q in ('2017-01-01', '2018-01-01')
-GROUP BY job_yr_q
-ORDER BY job_yr_q asc"
+`r code_snips$code[code_snips$title == "count_jobs_by_q_after_exit"]`
+
 ```
-   
-<span style="color:green; ">How many persons were working those jobs?</span>
+
+<span style="color:green; ">How many individuals were working those jobs?</span>
 ```{marginfigure, echo=TRUE}
 Aggregate the total number of persons with `count(distinct(ssn))`, since each row is a job and any individual ssn may have multiple jobs. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).
 ```
 
 ```yaml
-query <- "SELECT
-job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q in ('2017-01-01', '2018-01-01')
-GROUP BY job_yr_q
-ORDER BY job_yr_q asc"
+`r code_snips$code[code_snips$title == "count_persons_by_q_after_exit"]`
+
 ```
 
 <span style="color:green; ">What is the distribution of wages in the 1st quarter after exit?</span>
@@ -418,65 +482,54 @@ Calculate percentiles at the 10th, 25th, 50th, 75th and 90th percentiles using t
 ```
 
 ```yaml
-query <- "SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY wages)
-                ) AS earnings_value,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q = '2017-01-01'
+`r code_snips$code[code_snips$title == "wage_percentiles"]`
+
 ```
 ```{marginfigure, echo=TRUE}
-**Checkpoint 2 Learning Objectives**:     
-Adding multiple placeholders in different places in the SQL query using `sprintf`
+**Checkpoint 4 Learning Objectives**:     
+Create a parameterized query with placeholders for different data types. Using the query, compare distribution of earnings in different cohorts and quarters after exit.
 ```
-<span style="color:red; font-weight: bold;">CHECKPOINT 2:</span>
 
-Modify the queries using the `sprintf` function to make it easy to re-run for the 2009 cohort. 
+#### <span style="color:red;">CHECKPOINT 4</span>
 
-Modify queries used to produce these measures:  
-- Number of jobs   
-- Number of people working those jobs   
-- Distribution of earnings in a quarter after exit (you will need 2 placeholders - table and quarter).    
+We just ran a query to calculate the distribution of wages for the 2016 Q4 cohort in the 1st quarter after their exit. Now, modify the query we just ran, calculating distribution of earnings in a quarter after exit, by adding placeholders for the **table**, **year** and **quarter** with the `sprintf` function to make it easy to re-run the query with a different cohort or different post-exit quarter. Pay attention to the data type for your placeholders - while **table** is a string, the others are integers.
 
-<span style="color:red; font-weight: bold; font-style: italic;">Solution:</span>
+Modify the queries for these measures:
+<ol type="a">
+  <li>Modify the distribution of wages query with `sprintf`, adding placeholders for `table_name` and `post_exit_quarter`</li>
+  <li>Using modified query you just made, recreate and run queries for:</li>
+  <ul>
+  <li>5th quarter post-exit, 2016 Q4 Cohort</li>
+  <li>1st quarter post-exit, 2009 Q1 Cohort</li>
+  <li>5th quarter post-exit, 2009 Q1 Cohort</li>
+  </ul>
+</ol>
 
-```yaml
-query <- "SELECT 
-job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q = '2017-01-01'"
-```
-turns into 
+_Solution_
 
-```yaml
-table_name <- "ada_tdc_2020.wage_2016q4"
-job_yr_q <- '2017-01-01' 
-
-base_query <- "SELECT job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.%s
-WHERE job_yr_q = '%s'"
-
-query <- sprintf(base_query, table_name, job_yr_q)
-```
 ```{marginfigure, echo=TRUE}
-**Checkpoint 3 Learning Objectives**:   
-Compare distribution of earnings in different cohorts and quarters since exit, using the parameterized query created in **Checkpoint 2**
+Note that `%d` is used as a placeholder for integer values. Run `?sprintf` for more.
 ```
 
-<span style="color:red; font-weight: bold;">CHECKPOINT 3:</span>
-With the parameterized query created in **Checkpoint 2**, calculate the distribution of earnings for:  
-- 2016 Q4 Cohort, 5 months post-exit  
-- 2009 Q1 Cohort, 1 month post-exit  
-- 2009 Q1 Cohort, 5 months post-exit  
+4a
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint4a_solution"]`
 
+```
 
-From now on, we will parameterize all SQL queries where we can, since the goal of our analyses is to compare two cohorts at different points after they exit TANF.
+4b, 5th quarter post-exit, 2009 Q1 Cohort
 
-<span style="color:green; ">What is the employment and earnings (number of jobs, total earnings) of individuals in our cohort?</span>
+```yaml
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint4a_solution"]`
 
-Calculate number of jobs and total wages per person in a given quarter post-exit. In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the `year` and `quarter` columns (intead of `job_yr_q`) to demonstrate use of the `%d` placeholder.
+```
 
+From now on, we will parameterize all SQL queries where we can, since the goal of our analysis is to compare two cohorts at different points after they exit TANF.
+
+<span style="color:green; ">What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?</span>
+
+Calculate percentiles on number of jobs and total wages per person in a given quarter post-exit. 
+<!--In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the `year` and `quarter` columns (intead of `job_yr_q`) to demonstrate use of the `%d` placeholder. -->
 
 
 ```yaml
@@ -549,8 +602,8 @@ Then we calculate the proportion amongst all TANF leavers.
 We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate it for the 2009 Q1 cohort.
 `r margin_note('come up with a better checkpoint?')`
 
-## Employer
-### Summary Statistics: Employer Characteristics
+# Employer
+## Summary Statistics: Employer Characteristics
 
 **Guiding Questions:**  
 

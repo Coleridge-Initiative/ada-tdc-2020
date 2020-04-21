@@ -12,7 +12,7 @@
 
 <meta name="author" content="Coleridge" />
 
-<meta name="date" content="2020-04-20" />
+<meta name="date" content="2020-04-21" />
 
 <title>Data Exploration Handout</title>
 
@@ -281,27 +281,40 @@ if (window.hljs) {
 
 <h1 class="title toc-ignore">Data Exploration Handout</h1>
 <h4 class="author">Coleridge</h4>
-<h4 class="date">2020-04-20</h4>
+<h4 class="date">2020-04-21</h4>
 
 
 <div id="TOC">
 <ul>
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#lesson-structure">Lesson Structure</a></li>
-<li><a href="#lesson-content">Lesson Content</a>
+<li><a href="#introduction">Introduction</a>
 <ul>
+<li><a href="#lesson-structure">Lesson Structure</a></li>
+<li><a href="#learning-objectives-and-outcomes">Learning Objectives and Outcomes</a></li>
+</ul></li>
 <li><a href="#r-setup">R Setup</a></li>
-<li><a href="#loading-data-into-rjupyter">Loading Data into R/Jupyter</a></li>
-<li><a href="#whats-in-the-database">What’s in the database?</a></li>
+<li><a href="#loading-data-into-rjupyter">Loading Data into R/Jupyter</a>
+<ul>
+<li><a href="#establish-database-connection">Establish Database Connection</a></li>
+<li><a href="#reading-in-the-data">Reading in the Data</a></li>
+</ul></li>
+<li><a href="#whats-in-the-database">What’s in the database?</a>
+<ul>
+<li><a href="#checkpoint-1"><span style="color:red">CHECKPOINT 1</span></a></li>
+</ul></li>
 <li><a href="#individual">Individual</a>
 <ul>
-<li><a href="#summary-statistics-tanf">Summary Statistics: TANF</a></li>
-<li><a href="#summary-statistics-wages">Summary Statistics: Wages</a></li>
+<li><a href="#summary-statistics-tanf">Summary Statistics: TANF</a>
+<ul>
+<li><a href="#checkpoint-3"><span style="color:red;">CHECKPOINT 3</span></a></li>
+</ul></li>
+<li><a href="#summary-statistics-wages">Summary Statistics: Wages</a>
+<ul>
+<li><a href="#checkpoint-4"><span style="color:red;">CHECKPOINT 4</span></a></li>
+</ul></li>
 </ul></li>
 <li><a href="#employer">Employer</a>
 <ul>
 <li><a href="#summary-statistics-employer-characteristics">Summary Statistics: Employer Characteristics</a></li>
-</ul></li>
 </ul></li>
 <li><a href="#scrap">SCRAP</a></li>
 </ul>
@@ -312,27 +325,47 @@ if (window.hljs) {
 <p>The goal of the Data Exploration lesson is to provide a framework for describing the relationship between the labor market faced by TANF recipients and their earnings and employment outcomes. Use the analysis to shed light on the current crisis.</p>
 <p>We will answer the following questions:</p>
 <ol style="list-style-type: decimal">
+<li>What are different measures of the TANF experience?</li>
 <li>What are the earnings and employment outcomes of TANF recipients?<br />
 </li>
 <li>What are the characteristics of employers likely to hire TANF recipients?</li>
 </ol>
 <p><em>Policy Relevance: The TANF program “is designed to help needy families achieve self-sufficiency.” State agencies administering this federal program have an interest in understanding how TANF participation can support long-term, stable employment to achieve these goals. Administrative data on TANF participation joined with administrative data on earnings and employers can be used to describe the labor market outcomes of TANF recipients.</em></p>
-</div>
-<div id="lesson-structure" class="section level1">
-<h1>Lesson Structure</h1>
+<div id="lesson-structure" class="section level2">
+<h2>Lesson Structure</h2>
 <p>The lesson is given over the course of two days - Concepts of Data Exploration and Applications of Data Exploration.</p>
 <p><label for="tufte-mn-1" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-1" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Materials</strong>:<br /> 1. Data Exploration Video Lecture<br /> 2. <code>Data Exploration.ipynb</code></span></span></p>
 <p>This handout mirrors the content in the Data Exploration notebook lesson which you can access only in the Administrative Data Research Facility (ADRF). <strong>There is no sensitive data anywhere in this document.</strong> It is a handy reference to use as you step through the lesson in the ADRF, and to refer back to in the future.</p>
 <p>Each section has:</p>
 <ul>
-<li><strong>Guiding Questions</strong>, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.</li>
-<li><strong>Ask Yourself Questions</strong>, quick, bite-sized questions for your sake as a brain-check - to make sure we’re all on the same page. in <span style="color:blue; ">blue</span>.</li>
-<li><strong>Checkpoints</strong>, which are mini-exercises for you to complete, to be reviewed during “in-class” time. They are included in each section in <span style="color:red; ">red</span>.</li>
+<li><span style="color:green;font-weight: bold; ">Guiding Questions</span>, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.</li>
+<li><span style="color:blue;font-weight: bold; ">Ask Yourself Questions</span>, quick, bite-sized questions to jog your brain and make sure we’re all on the same page. in <span style="color:blue; ">blue</span>.</li>
+<li><span style="color:red;font-weight: bold; ">Checkpoints</span>, which are mini-exercises for you to complete, to be reviewed during “in-class” time. They are included in each section in <span style="color:red; ">red</span>.</li>
 </ul>
-<p><label for="tufte-mn-2" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-2" class="margin-toggle"><span class="marginnote">these come from the syllabus</span> # Learning Objectives and Outcomes</p>
-<p><strong>Concepts of Data Exploration</strong> 1. Become familiar with common measures of employment outcomes. 1. Begin to think about which measures are most important to their home state’s pilot project. 1. Be introduced to specifications of the cohorts. <strong>Applications of Data Exploration</strong> 1. Become comfortable querying the database with SQL queries in R. 1. Become comfortable using the main tables in TANF and UI data. 1. Gain skills in creating basic descriptives of the datasets, aggregating data frames. 1. Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in <strong>Concepts of Data Exploration</strong>.</p>
+<p><label for="tufte-mn-2" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-2" class="margin-toggle"><span class="marginnote">these come from the syllabus</span></p>
+</div>
+<div id="learning-objectives-and-outcomes" class="section level2">
+<h2>Learning Objectives and Outcomes</h2>
+<p><strong>Concepts of Data Exploration</strong></p>
+<ol style="list-style-type: decimal">
+<li>Become familiar with common measures of employment outcomes.<br />
+</li>
+<li>Begin to think about which measures are most important to their home state’s pilot project.<br />
+</li>
+<li>Be introduced to specifications of the cohorts.</li>
+</ol>
+<p><strong>Applications of Data Exploration</strong><label for="tufte-mn-3" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle"><span class="marginnote">data_exploration.ipynb</span></p>
+<ol style="list-style-type: decimal">
+<li>Become comfortable querying the database with SQL queries in R.<br />
+</li>
+<li>Become comfortable using the main tables in TANF and UI data.<br />
+</li>
+<li>Gain skills in creating basic descriptives of the datasets, aggregating data frames.<br />
+</li>
+<li>Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed in <strong>Concepts of Data Exploration</strong>.</li>
+</ol>
 <!-- ## Day 2, Concepts of Data Exploration -->
-<!-- <label for="tufte-mn-3" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle"><span class="marginnote">this was all taken from the master syllabus. remove?</span> -->
+<!-- <label for="tufte-mn-4" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle"><span class="marginnote">this was all taken from the master syllabus. remove?</span> -->
 <!-- At the end of this section, participants will have learned of common metrics for employment outcomes and will understand the analytical frame and questions to consider when developing an analysis using such metrics. The lesson will range from covering basic statistics to developing an analytical frame for creating employment metrics. This material will lay the groundwork for the hands-on data exploration tasks covered in Day 3. -->
 <!-- _Policy Relevance: Understanding employment trajectories of TANF recipients is the primary focus of this course, and through a lecture and discussion session, participants will understand the primary metrics used to measure employment outcomes.  They will be exposed to the questions that frame the analytical task and yield decisions around which metrics to use. Participants will consider, for example, whether individuals had other TANF experience post-“exit”; whether to look at annual earnings, earnings from dominant employers or all employers, etc. _ -->
 <!-- **Learning Objectives:**       -->
@@ -349,11 +382,9 @@ if (window.hljs) {
 <!-- 1.  Gain skills in creating basic descriptives of the datasets, aggregating data frames.   -->
 <!-- 1.  Learn to calculate employment outcome metrics (given a pre-defined cohort) which were discussed on Day 2.    -->
 </div>
-<div id="lesson-content" class="section level1">
-<h1>Lesson Content</h1>
-<p><label for="tufte-mn-4" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle"><span class="marginnote">data_exploration.ipynb</span></p>
-<div id="r-setup" class="section level2">
-<h2>R Setup</h2>
+</div>
+<div id="r-setup" class="section level1">
+<h1>R Setup</h1>
 <p>Load libraries<br />
 <code>library(tidyverse)</code></p>
 <p><label for="tufte-mn-5" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-5" class="margin-toggle"><span class="marginnote"><span style="display: block;">It is good practice to put the library name before the function, e.g. <code>DBI::dbGetQuery(con,query)</code> in case the function you are using exists in multiple libraries. However if you’re confident that the function you want to use exists in only one of the libraries loaded in your environment, you can skip it.</span></span></p>
@@ -362,9 +393,11 @@ if (window.hljs) {
 <p>Getting help on a library or function<br />
 <code>?strptime</code> <code>?tidyverse</code></p>
 </div>
-<div id="loading-data-into-rjupyter" class="section level2">
-<h2>Loading Data into R/Jupyter</h2>
-<p>Establish connection with <code>DBI</code> and <code>RPostgreSQL</code> libraries</p>
+<div id="loading-data-into-rjupyter" class="section level1">
+<h1>Loading Data into R/Jupyter</h1>
+<div id="establish-database-connection" class="section level2">
+<h2>Establish Database Connection</h2>
+<p>We establish a connection with <code>DBI</code> and <code>RPostgreSQL</code> libraries</p>
 <pre class="yaml"><code>drv &lt;- dbDriver(&quot;PostgreSQL&quot;)
 con &lt;- dbConnect(drv
               ,dbname = &quot;postgresql://stuffed.adrf.info/appliedda&quot;)
@@ -376,11 +409,15 @@ FROM in_fssa.person_month
 LIMIT 20;&quot;
 
 query</code></pre>
+</div>
+<div id="reading-in-the-data" class="section level2">
+<h2>Reading in the Data</h2>
 <p>Queries are run with the function <code>dbGetQuery</code> from the <code>DBI</code> library. The function expects 2 inoputs - the database connection, <code>con</code>, and the <code>query</code>.</p>
 <pre class="yaml"><code>df &lt;- dbGetQuery(con,query)</code></pre>
 </div>
-<div id="whats-in-the-database" class="section level2">
-<h2>What’s in the database?</h2>
+</div>
+<div id="whats-in-the-database" class="section level1">
+<h1>What’s in the database?</h1>
 <p><label for="tufte-mn-6" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-6" class="margin-toggle"><span class="marginnote"><span style="display: block;">Every SQL database has a metadata schema called <code>information_schema</code></span></span> We learn more about what is in the database by inspecting the results of queries <code>information_schema</code>. Here, we introduce the <code>head(df)</code> function which will print out the first 6 rows of the dataframe <code>df</code>.</p>
 <pre class="yaml"><code>df &lt;- dbGetQuery(con, &quot;SELECT * FROM information_schema.schemata&quot;)
 
@@ -399,104 +436,193 @@ limit 10;&quot;
 
 dbGetQuery(con,schema_query)
 </code></pre>
-<p><label for="tufte-mn-8" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-8" class="margin-toggle"><span class="marginnote"><span style="display: block;">Plaeholders are denoted by <code>%s</code> if the expected replacement value is a string; <code>%d</code> if the expected replacement value is an integer; run <code>?sprintf</code> for more replacement values.</span></span> We will now <em>parameterize</em> the query we just ran, using a string manipulation function called <code>sprintf</code>, which takes a string with placeholders, and their replacement value(s). A query that is parameterized is more flexible in that you can re-use queries and plug in new parameters (usually in the <code>FROM</code> or <code>WHERE</code> clause) without rewriting the query. This is useful for us in 2 ways: first, because we want to look at employment measures at different time points after exit from the TANF program; and second, because we want to compare these measures across different cohorts.</p>
-<p><label for="tufte-mn-9" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-9" class="margin-toggle"><span class="marginnote"><span style="display: block;">First we establish which variables we will want to swap out - here, <code>schema</code> and <code>tbl</code>.</span> <span style="display: block;">Then, we write a <code>base_query</code> with placeholders (denoted by <code>%s</code>) that indicate to the <code>sprintf</code> function where the replacement values go.</span> <span style="display: block;">Finally, we use the <code>sprintf</code> function, a string manipulation, to tie it all together.</span></span></p>
+<p><label for="tufte-mn-8" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-8" class="margin-toggle"><span class="marginnote"><span style="display: block;">Plaeholders are denoted by <code>%s</code> if the expected replacement value is a string; <code>%d</code> if the expected replacement value is an integer; run <code>?sprintf</code> for more replacement values.</span></span> We will now pause to <em>parameterize</em> the query we just ran, using a string manipulation function called <code>sprintf</code>, which takes a string with placeholders, and their replacement value(s). A parameterized query is more flexible in that you can re-use queries and plug in new parameters (usually in the <code>FROM</code> or <code>WHERE</code> clause) without rewriting the entire query from scratch. We will use this to look at our two cohorts; and to calculate employer characteristics at different points in time.</p>
+<p>First we establish which variables we will want to swap out - here, <code>schema</code> and <code>tbl</code>.</p>
 <pre class="yaml"><code>schema &lt;-&quot;in_fssa&quot;
-tbl &lt;- &quot;person_month&quot;
-
-base_query &lt;- &quot;SELECT * 
+tbl &lt;- &quot;person_month&quot;</code></pre>
+<p>Then, we write a <code>base_query</code> with placeholders (denoted by <code>%s</code>) that indicate to the <code>sprintf</code> function where the replacement values go.</p>
+<pre class="yaml"><code>base_query &lt;- &quot;SELECT * 
 FROM information_schema.columns
-WHERE table_schema = &#39;%s&#39; AND table_name = &#39;%s&#39;&quot;
-
-query &lt;- sprintf(base_query, schema,tbl)
+WHERE table_schema = &#39;%s&#39; AND table_name = &#39;%s&#39;
+limit 20;&quot;</code></pre>
+<p>Finally, we use the <code>sprintf</code> function to create the query string, which we run like usual with <code>dbGetQuery</code>.</p>
+<pre class="yaml"><code>query &lt;- sprintf(base_query, schema,tbl)
 
 dbGetQuery(con,query)</code></pre>
-<p>Now let’s start looking at the data we’ll be using for this class. Take a look at what’s in the <code>in_fssa</code> monthly person-level TANF claims. Soon, we will look at tables of pre-defined cohorts, whcih were derived from this <code>person_month</code> table.</p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT *
-FROM in_fssa.person_month
-limit 20;&quot;
+<p><label for="tufte-mn-9" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-9" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 1 Learning Objectives</strong>:<br /> Become comfortable updating values in a parameterized function by changing the value of <code>tbl</code>; gain familiarity with the format of the <code>in_fssa.case_month</code> table.</span></span></p>
+<div id="checkpoint-1" class="section level3">
+<h3><span style="color:red">CHECKPOINT 1</span></h3>
+<p>Get column metadata on the <code>case_month</code> table.</p>
+<p>With the parameterized query we just used,</p>
+<ol type="a">
+<li>
+Update the <code>tbl</code> variable to the case level table
+</li>
+<li>
+Generate the new query
+</li>
+<li>
+Run the new query
+</li>
+</ol>
+<p><em>Solution</em> 1a</p>
+<pre class="yaml"><code>schema &lt;- &quot;ada_tdc_2020&quot; 
+tbl &lt;- &quot;case_month&quot; 
 
-in_df &lt;- dbGetQuery(con,query)
-
-head(in_df)</code></pre>
+ 
+base_query &lt;- &quot;SELECT  * 
+FROM information_schema.columns 
+WHERE table_schema = &#39;%s&#39; and table_name = &#39;%s&#39;&quot;
+</code></pre>
+<p>1b</p>
+<pre class="yaml"><code>query &lt;- sprintf(base_query, schema,tbl)
+</code></pre>
+<p>1c</p>
+<pre class="yaml"><code>dbGetQuery(con, query)
+</code></pre>
 </div>
-<div id="individual" class="section level2">
-<h2>Individual</h2>
-<div id="summary-statistics-tanf" class="section level3">
-<h3>Summary Statistics: TANF</h3>
-<p><strong>Guiding Questions:</strong><br />
-For individuals who had a spell ending in 2016 Q4, we want to know:</p>
+</div>
+<div id="individual" class="section level1">
+<h1>Individual</h1>
+<div id="summary-statistics-tanf" class="section level2">
+<h2>Summary Statistics: TANF</h2>
+<p><span style="color:green;font-weight: bold;">Guiding Questions:</span></p>
+<p>For individuals who had a spell ending in 2016 Q4, we want to know:</p>
 <ol style="list-style-type: decimal">
 <li>What is the distribution of spell lengths amongst individuals in our cohort?</li>
 <li>What is the spell length at the 25th percentile?<br />
 </li>
-<li>What are the spell lengths at the 10th, 25th, 50th, and 75th percentiles?</li>
+<li>What are the spell lengths at the 10th, 25th, 50th, 75th and 90th percentiles?</li>
 </ol>
-<p><label for="tufte-mn-10" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-10" class="margin-toggle"><span class="marginnote"><span style="display: block;">See the <a href="/Users/sophierand/Google%20Drive/tdc_handouts/table_creation_handout.html">table_creation notebook</a> for more on the cohorts.</span></span></p>
+<p><label for="tufte-mn-10" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-10" class="margin-toggle"><span class="marginnote"><span style="display: block;">See the <a href="table_creation_handout.html" target="_blank">Table Creation Handout</a> for more on how the cohorts were created.</span></span></p>
 <p><strong>Tables:</strong> These calculations rely on <code>ada_tdc_2020.tanf_&lt;year&gt;q&lt;quarter&gt;</code> which contain data on the TANF spell which ended in the quarter specified in the cohort name.</p>
-<p>First, a quick look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016.</p>
+<p>First, a quick look at the <code>in_fssa.person_month</code> table, from which our cohort originates.</p>
+<pre class="yaml"><code>query &lt;- &quot;SELECT * 
+FROM in_fssa.person_month 
+LIMIT 10;&quot; 
+ 
+in_df &lt;- dbGetQuery(con,query) 
+ 
+head(in_df)
+</code></pre>
+<p>Now let’s look at the 2016 Q4 cohort. This is a cohort of individuals who were primary recipients of TANF and had a spell ending in the fourth quarter of 2016.</p>
 <pre class="yaml"><code>query &lt;- &quot;SELECT * 
 FROM ada_tdc_2020.tanf_2016q4 
 LIMIT 10;&quot; 
  
 cohort_df &lt;- dbGetQuery(con,query)
 </code></pre>
+<p><label for="tufte-mn-11" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-11" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 2 Learning Objectives</strong>:<br /> Practice using SQL functions <code>LIMIT</code>, <code>WHERE</code>, and <code>COUNT</code>.</span></span> #### <span style="color:red">CHECKPOINT 2</span></p>
+<p>Read in the 2009 Q1 TANF Cohort.</span></p>
+<ol type="a">
+<li>
+Read in the first 20 rows of <code>ada_tdc_2020.tanf_2009q1</code>
+</li>
+<li>
+Look at records where recipients had a spell ending in February 2009 (Hint: use <code>WHERE</code> and <code>rep_month</code>)
+</li>
+<li>
+Count the number of distinct individuals in the file (Hint: <code>count(distinct(ssn))</code>
+</li>
+</ol>
+<p><em>Solution:</em></p>
+<p>2a</p>
+<pre class="yaml"><code>SELECT * 
+FROM ada_tdc_2020.tanf_2009q1 
+limit 20;
+</code></pre>
+<p>2b</p>
+<pre class="yaml"><code>SELECT * 
+FROM ada_tdc_2020.tanf_2009q1 
+WHERE rep_month = 2 and rep_year = 2009 
+limit 20;
+</code></pre>
+<p>2c</p>
+<pre class="yaml"><code>SELECT count(distinct(ssn)) 
+FROM ada_tdc_2020.tanf_2009q1;</code></pre>
 <p><span style="color:blue;font-weight: bold; font-style: italic;"><em><strong>Ask Yourself: </strong></em></span> What is the difference in the unit of analysis between the TANF claims in <code>in_fssa.person_month</code> and the spells in <code>ada_tdc_2020.tanf_2016q4</code>? Inspect the outputs of <code>in_df</code> and <code>cohort_df</code>.</p>
-<p><em>Answer:</em> <code>in_fssa.person_month</code> has monthly TANF transactions (disbursement of benefits) and the unit of analysis is <code>person-month</code> while <code>ada_tdc_2020.tanf_2016q4</code> has data on the most recent spell (the spell that ‘qualified’ the individual to be in the cohort).</p>
-<p><span style="color:blue;font-weight: bold; font-style: italic;"><em><strong>Ask Yourself: </strong></em></span> Which of the following are true, where n_ssn_tanf = # persons in <code>in_fssa</code>?</p>
+<p><em>Answer:</em> <code>in_fssa.person_month</code> has monthly TANF transactions (disbursement of benefits) and the unit of analysis is <code>person-month</code> while <code>ada_tdc_2020.tanf_2016q4</code> has data on the most recent spell (the spell that qualified the individual to be in the cohort).</p>
+<p><span style="color:blue;font-weight: bold; font-style: italic;"><em><strong>Ask Yourself: </strong></em></span> Which of the following are true, where <span class="math inline">\(\ num_{ssn,tanf}\)</span> = # persons in <code>in_fssa.person_month</code>, and <span class="math inline">\(\ num_{ssn,cohort}\)</span> = # persons in either of the cohorts?</p>
 <ol style="list-style-type: decimal">
-<li><span class="math display">\[num_{ssn,tanf} &gt; num_{ssn,cohort}\]</span><br />
+<li><span class="math inline">\(\ num_{ssn,tanf} &gt; num_{ssn,cohort}\)</span><br />
 </li>
-<li><span class="math display">\[num_{ssn,tanf} &lt; num_{ssn,cohort}\]</span><br />
+<li><span class="math inline">\(\ num_{ssn,tanf} &lt; num_{ssn,cohort}\)</span><br />
 </li>
-<li><span class="math display">\[num_{ssn,cohort} = num_{rows,cohort}\]</span><br />
+<li><span class="math inline">\(\ num_{ssn,cohort} = num_{rows,cohort}\)</span><br />
 </li>
-<li><span class="math display">\[num_{ssn,cohort} \leq num_{rows,cohort}\]</span></li>
+<li><span class="math inline">\(\ num_{ssn,cohort} \leq num_{rows,cohort}\)</span></li>
 </ol>
 <p><em>Answer:</em> 1, 2</p>
-<p><label for="tufte-mn-11" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-11" class="margin-toggle"><span class="marginnote"><span style="display: block;">The column <code>tanf_spell_months</code> has the number of months in that spell.</span></span> The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.</p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT count(*),tanf_spell_months as length
-FROM ada_tdc_2020.tanf_2016q4
-GROUP BY length
+<p><span style="color:green; ">What is the distribution of spell lengths amongst individuals in our cohort?</span></p>
+<p>The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.</p>
+<p><label for="tufte-mn-12" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-12" class="margin-toggle"><span class="marginnote"><span style="display: block;">The column <code>tanf_spell_months</code> has the number of months in that spell.</span></span></p>
+<pre class="yaml"><code>query &lt;- &quot;SELECT count(*),tanf_spell_months as length 
+FROM ada_tdc_2020.tanf_2016q4 
+GROUP BY length 
 ORDER BY count desc&quot;
 
-spell_count_df &lt;- dbGetQuery(con, query)
+spell_count_df &lt;- dbGetQuery(con,query) 
+
+head(spell_count_df)
 </code></pre>
-<p><span style="color:green; ">What is the distribution of spell lengths amongst these individuals?</span></p>
-<p>We look at distribution of spell lengths in the 2016 Q4 cohort to answer this question. We can use <code>summary(df)</code> to generate the quartiles and the median.</p>
-<pre class="yaml"><code>summary(spell_count_df)</code></pre>
-<p>We can also use <code>quantile</code> to calculate specific percentiles: <label for="tufte-mn-12" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-12" class="margin-toggle"><span class="marginnote"><span style="display: block;">We use the <code>$</code> sign notation to specify the <code>length</code> column, which is the column we’re looking for a distribution on. The <code>c</code> function is used to create a vector of numbers for the percentiles we are looking for.</span></span></p>
-<pre class="yaml"><code>quantile(spell_count_df$length, c(0.1, 0.25, 0.5, 0.75, 0.8))</code></pre>
-<p>We can also use the <code>SQL</code> function <code>percentile_cont</code> to calculate the 25th percentile.</p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT
+<p>We can use <code>min</code> and <code>max</code> to look at the range of values. We could have done this in SQL also, but since we have the dataframe handy, let’s run these quick R commands.</p>
+<p><label for="tufte-mn-13" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-13" class="margin-toggle"><span class="marginnote"><span style="display: block;">We use the <code>$</code> sign notation to specify the <code>length</code> column, which is the column we’re looking for descriptives on.</span></span></p>
+<pre class="yaml"><code>min(spell_count_df$length)
+max(spell_count_df$length)
+</code></pre>
+<p><span style="color:green; ">What is the spell length at the 25th percentile?</span></p>
+<p>We use the <code>SQL</code> function <code>percentile_cont</code> to calculate spell lengths at the 25th percentile. There are R functions, like <code>quantile</code>, that can be used to calculate percentiles, but we conduct the manipulation with SQL to preserve compute resources.</p>
+<pre class="yaml"><code>query &lt;- &quot;SELECT 
 percentile_cont(0.25) 
-WITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25
-FROM ada_tdc_2020.tanf_2016q4</code></pre>
+WITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25 
+FROM ada_tdc_2020.tanf_2016q4&quot;
+</code></pre>
+<p><span style="color:green; ">What are the spell lengths at the 10th, 25th, 50th, 75th and 90th percentiles?</span></p>
 <p>We can extend the query to calculate other percentile values, and use <code>unnest</code> function to see the percentile value with the percentile.</p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY tanf_spell_months)
-                ) AS months,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM ada_tdc_2020.tanf_2016q4</code></pre>
-<p><span style="color:red; font-weight: bold;">CHECKPOINT 1:</span></p>
-<p>Modify the query used to calculate distirbution of spell lengths to calculate the same for the 2009 Q1 cohort. The cohort is stored in the the query used to calculate distribution of spell lengths using <code>sprintf</code> to calculate the distribution for the cohort exiting in Q1 2009.</p>
-<p><span style="color:red; font-weight: bold; font-style: italic;">Solution:</span></p>
-<pre class="yaml"><code>tbl &lt;- tanf_2009q1
-
-base_query &lt;- &quot;SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY tanf_spell_months)
-                ) AS months,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+<pre class="yaml"><code>query &lt;- &quot;SELECT 
+    unnest( 
+        percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+        WITHIN GROUP (ORDER BY tanf_spell_months) 
+    ) AS months, 
+    unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value 
+FROM ada_tdc_2020.tanf_2016q4&quot;
+</code></pre>
+<p><label for="tufte-mn-14" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-14" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 3 Learning Objectives</strong>:<br /> Practice writing a parameterized query and use it to generate data for the comparison cohort.</span></span></p>
+<div id="checkpoint-3" class="section level4">
+<h4><span style="color:red;">CHECKPOINT 3</span></h4>
+<p>Calculate spell lengths at different percentiles for the 2009 Q1 Cohort.</p>
+<p>Modify the query used to calculate spell length at the 10th, 25th, 50th, 75th and 90th percentile for the cohort exiting TANF in Q1 of 2009 (<code>ada_tdc_2020.tanf_2009q1</code>)</p>
+<ol type="a">
+<li>
+Parameterize the query with <code>sprintf</code>, adding a placeholder for the table.
+</li>
+<li>
+Regenerate the query for the 2009 Q1 cohort and retrieve new results from the database.
+</li>
+</li>
+</ol>
+<p><em>Solution</em></p>
+<p>3a</p>
+<pre class="yaml"><code>table_name &lt;- &quot;tanf_2009q1&quot; 
+base_query &lt;- &quot;SELECT 
+    unnest( 
+        percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+        WITHIN GROUP (ORDER BY tanf_spell_months) 
+    ) AS months, 
+    unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value 
 FROM ada_tdc_2020.%s&quot;
+</code></pre>
+<p>3b</p>
+<pre class="yaml"><code>query &lt;- sprintf(base_query, table_name) 
 
-query &lt;- sprintf(base_query,tbl)</code></pre>
+percentiles_2009q1_df &lt;- dbGetQuery(con, query)
+</code></pre>
 </div>
-<div id="summary-statistics-wages" class="section level3">
-<h3>Summary Statistics: Wages</h3>
-<p><strong>Guiding Questions:</strong></p>
-<p>We are interested in the earnings and employment characteristics of TANF leavers in their 1st and 5th quarters post-exit. <label for="tufte-mn-13" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-13" class="margin-toggle"><span class="marginnote"><span style="display: block;">Introduce <code>sprintf</code> function for making queries flexible by creating a placeholder for <code>yr_quarter</code> and the table name to calculate distribution of earnings in both cohorts, 1st and 5th quarter post exit</span></span></p>
+</div>
+<div id="summary-statistics-wages" class="section level2">
+<h2>Summary Statistics: Wages</h2>
+<p><span style="color:green;font-weight: bold;">Guiding Questions:</span></p>
+<p>We are interested in the earnings and employment characteristics of TANF leavers in their 1st and 5th quarters post-exit. <label for="tufte-mn-15" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-15" class="margin-toggle"><span class="marginnote"><span style="display: block;">Introduce <code>sprintf</code> function for making queries flexible by creating a placeholder for <code>yr_quarter</code> and the table name to calculate distribution of earnings in both cohorts, 1st and 5th quarter post exit</span></span></p>
 <ol style="list-style-type: decimal">
 <li>What is the shape/form of the wage tables?<br />
 </li>
@@ -504,69 +630,99 @@ query &lt;- sprintf(base_query,tbl)</code></pre>
 </li>
 <li>How many individuals were working those jobs?<br />
 </li>
-<li>What was the distribution of wages in the 1st and 5th quarter post-exit?<br />
+<li>What was the distribution of wages in the 1st quarter post-exit?<br />
 </li>
 <li>What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?</li>
 <li>What was the proportion of TANF individuals with a job in the 8 quarters after their exit?</li>
-<li>What was the proportion of TANF individuals with a stable job in the 8 quarters after their exit? <label for="tufte-mn-14" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-14" class="margin-toggle"><span class="marginnote">in 2019, this was how many had it in the year 2017, but i didnt see a calculation that filtered just to this year</span></li>
+<li>What was the proportion of TANF individuals with a stable job in the 8 quarters after their exit? <label for="tufte-mn-16" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-16" class="margin-toggle"><span class="marginnote">in 2019, this was how many had it in the year 2017, but i didnt see a calculation that filtered just to this year</span></li>
 <li>How many TANF individuals do not have available wage data in our cohort?</li>
 </ol>
-<p><strong>Tables:</strong> These calculations rely on <code>ada_tdc_2020.tanf_wage_&lt;year&gt;q&lt;quarter&gt;</code> which contain wage records for individuals in the corresponding cohort from the quarter of exit until 8 quarters post-exit. <label for="tufte-mn-15" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-15" class="margin-toggle"><span class="marginnote">we may want to talk over this one/confirm. based on 2019 tdc</span></p>
-<p>First, we preview the data in the wage cohort tables.</p>
-<pre class="yaml"><code>dbGetQuery(con, &quot;SELECT * FROM ada_tdc_2020.wage_2016q4 limit 5;)</code></pre>
-<p><span style="color:green; "> How many total jobs did leavers hold in the 1st and 5th quarter post-exit?</span></p>
-<p><label for="tufte-mn-16" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-16" class="margin-toggle"><span class="marginnote"><span style="display: block;">Aggregate the total number of jobs with <code>count(*)</code>, since each row is a job. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).</span></span></p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT
-job_yr_q, count(*)
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q in (&#39;2017-01-01&#39;, &#39;2018-01-01&#39;)
-GROUP BY job_yr_q
-ORDER BY job_yr_q asc&quot;</code></pre>
-<p><span style="color:green; ">How many persons were working those jobs?</span> <label for="tufte-mn-17" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-17" class="margin-toggle"><span class="marginnote"><span style="display: block;">Aggregate the total number of persons with <code>count(distinct(ssn))</code>, since each row is a job and any individual ssn may have multiple jobs. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).</span></span></p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT
-job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q in (&#39;2017-01-01&#39;, &#39;2018-01-01&#39;)
-GROUP BY job_yr_q
-ORDER BY job_yr_q asc&quot;</code></pre>
-<p><span style="color:green; ">What is the distribution of wages in the 1st quarter after exit?</span></p>
-<p><label for="tufte-mn-18" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-18" class="margin-toggle"><span class="marginnote"><span style="display: block;">Calculate percentiles at the 10th, 25th, 50th, 75th and 90th percentiles using the PostgreSQL function <code>percentile_cont</code> in the 1st quarter after exit.</span></span></p>
-<pre class="yaml"><code>query &lt;- &quot;SELECT unnest(
-                   percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
-                   WITHIN GROUP (ORDER BY wages)
-                ) AS earnings_value,
-                unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q = &#39;2017-01-01&#39;</code></pre>
-<p><label for="tufte-mn-19" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-19" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 2 Learning Objectives</strong>:<br /> Adding multiple placeholders in different places in the SQL query using <code>sprintf</code></span></span> <span style="color:red; font-weight: bold;">CHECKPOINT 2:</span></p>
-<p>Modify the queries using the <code>sprintf</code> function to make it easy to re-run for the 2009 cohort.</p>
-<p>Modify queries used to produce these measures:<br />
-- Number of jobs<br />
-- Number of people working those jobs<br />
-- Distribution of earnings in a quarter after exit (you will need 2 placeholders - table and quarter).</p>
-<p><span style="color:red; font-weight: bold; font-style: italic;">Solution:</span></p>
+<p><strong>Tables:</strong> These calculations rely on <code>ada_tdc_2020.tanf_wage_&lt;year&gt;q&lt;quarter&gt;</code> which contain wage records for individuals in the corresponding cohort from the quarter of exit until 8 quarters post-exit. <label for="tufte-mn-17" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-17" class="margin-toggle"><span class="marginnote">we may want to talk over this one/confirm. based on 2019 tdc</span></p>
+<p><span style="color:green; "> What is the shape/form of the wage tables? </span></p>
+<pre class="yaml"><code>dbGetQuery(con, 
+&quot;SELECT * 
+FROM ada_tdc_2020.wage_2016q4 limit 5;)&quot;
+</code></pre>
+<p><span style="color:green; "> How many total jobs did leavers from the 2016 Q4 cohort hold in the 1st and 5th quarter post-exit?</span></p>
+<p><label for="tufte-mn-18" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-18" class="margin-toggle"><span class="marginnote"><span style="display: block;">Aggregate the total number of jobs with <code>count(*)</code>, since each row is a job. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).</span></span></p>
 <pre class="yaml"><code>query &lt;- &quot;SELECT 
-job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.wage_2016q4
-WHERE job_yr_q = &#39;2017-01-01&#39;&quot;</code></pre>
-<p>turns into</p>
-<pre class="yaml"><code>table_name &lt;- &quot;ada_tdc_2020.wage_2016q4&quot;
-job_yr_q &lt;- &#39;2017-01-01&#39; 
-
-base_query &lt;- &quot;SELECT job_yr_q, count(distinct(ssn))
-FROM ada_tdc_2020.%s
-WHERE job_yr_q = &#39;%s&#39;&quot;
-
-query &lt;- sprintf(base_query, table_name, job_yr_q)</code></pre>
-<p><label for="tufte-mn-20" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-20" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 3 Learning Objectives</strong>:<br /> Compare distribution of earnings in different cohorts and quarters since exit, using the parameterized query created in <strong>Checkpoint 2</strong></span></span></p>
-<p><span style="color:red; font-weight: bold;">CHECKPOINT 3:</span> With the parameterized query created in <strong>Checkpoint 2</strong>, calculate the distribution of earnings for:<br />
-- 2016 Q4 Cohort, 5 months post-exit<br />
-- 2009 Q1 Cohort, 1 month post-exit<br />
-- 2009 Q1 Cohort, 5 months post-exit</p>
-<p>From now on, we will parameterize all SQL queries where we can, since the goal of our analyses is to compare two cohorts at different points after they exit TANF.</p>
-<p><span style="color:green; ">What is the employment and earnings (number of jobs, total earnings) of individuals in our cohort?</span></p>
-<p>Calculate number of jobs and total wages per person in a given quarter post-exit. In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the <code>year</code> and <code>quarter</code> columns (intead of <code>job_yr_q</code>) to demonstrate use of the <code>%d</code> placeholder.</p>
+job_yr_q, count(*) 
+FROM ada_tdc_2020.wage_2016q4 
+WHERE job_yr_q in (&#39;2017-01-01&#39;, &#39;2018-01-01&#39;) 
+GROUP BY job_yr_q 
+ORDER BY job_yr_q asc&quot;
+</code></pre>
+<p><span style="color:green; ">How many individuals were working those jobs?</span> <label for="tufte-mn-19" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-19" class="margin-toggle"><span class="marginnote"><span style="display: block;">Aggregate the total number of persons with <code>count(distinct(ssn))</code>, since each row is a job and any individual ssn may have multiple jobs. Group by 1st and 5th quarter after exit (Q1 2017 and Q1 2018, respectively).</span></span></p>
+<pre class="yaml"><code>query &lt;- &quot;SELECT 
+job_yr_q, count(distinct(ssn)) 
+FROM ada_tdc_2020.wage_2016q4 
+WHERE job_yr_q in (&#39;2017-01-01&#39;, &#39;2018-01-01&#39;) 
+GROUP BY job_yr_q 
+ORDER BY job_yr_q asc&quot;
+</code></pre>
+<p><span style="color:green; ">What is the distribution of wages in the 1st quarter after exit?</span></p>
+<p><label for="tufte-mn-20" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-20" class="margin-toggle"><span class="marginnote"><span style="display: block;">Calculate percentiles at the 10th, 25th, 50th, 75th and 90th percentiles using the PostgreSQL function <code>percentile_cont</code> in the 1st quarter after exit.</span></span></p>
+<pre class="yaml"><code>query &lt;- &quot;SELECT 
+    unnest( 
+        percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+        WITHIN GROUP (ORDER BY wages) 
+    ) AS earnings_value, 
+    unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value 
+FROM ada_tdc_2020.wage_2016q4 
+WHERE job_yr_q = &#39;2017-01-01&#39;&quot;
+</code></pre>
+<p><label for="tufte-mn-21" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-21" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Checkpoint 4 Learning Objectives</strong>:<br /> Create a parameterized query with placeholders for different data types. Using the query, compare distribution of earnings in different cohorts and quarters after exit.</span></span></p>
+<div id="checkpoint-4" class="section level4">
+<h4><span style="color:red;">CHECKPOINT 4</span></h4>
+<p>We just ran a query to calculate the distribution of wages for the 2016 Q4 cohort in the 1st quarter after their exit. Now, modify the query we just ran, calculating distribution of earnings in a quarter after exit, by adding placeholders for the <strong>table</strong>, <strong>year</strong> and <strong>quarter</strong> with the <code>sprintf</code> function to make it easy to re-run the query with a different cohort or different post-exit quarter. Pay attention to the data type for your placeholders - while <strong>table</strong> is a string, the others are integers.</p>
+Modify the queries for these measures:
+<ol type="a">
+<li>
+Modify the distribution of wages query with <code>sprintf</code>, adding placeholders for <code>table_name</code> and <code>post_exit_quarter</code>
+</li>
+<li>
+Using modified query you just made, recreate and run queries for:
+</li>
+<ul>
+<li>
+5th quarter post-exit, 2016 Q4 Cohort
+</li>
+<li>
+1st quarter post-exit, 2009 Q1 Cohort
+</li>
+<li>
+5th quarter post-exit, 2009 Q1 Cohort
+</li>
+</ul>
+</ol>
+<p><em>Solution</em></p>
+<p><label for="tufte-mn-22" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-22" class="margin-toggle"><span class="marginnote"><span style="display: block;">Note that <code>%d</code> is used as a placeholder for integer values. Run <code>?sprintf</code> for more.</span></span></p>
+<p>4a</p>
 <pre class="yaml"><code>
+base_query &lt;- &quot;SELECT 
+    unnest( 
+        percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+        WITHIN GROUP (ORDER BY wages) 
+    ) AS earnings_value, 
+    unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value 
+FROM ada_tdc_2020.%s 
+WHERE year = %d and quarter = %d&quot; 
+</code></pre>
+<p>4b, 5th quarter post-exit, 2009 Q1 Cohort</p>
+<pre class="yaml"><code>
+base_query &lt;- &quot;SELECT 
+    unnest( 
+        percentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+        WITHIN GROUP (ORDER BY wages) 
+    ) AS earnings_value, 
+    unnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value 
+FROM ada_tdc_2020.%s 
+WHERE year = %d and quarter = %d&quot; 
+</code></pre>
+<p>From now on, we will parameterize all SQL queries where we can, since the goal of our analysis is to compare two cohorts at different points after they exit TANF.</p>
+<p><span style="color:green; ">What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?</span></p>
+<p>Calculate percentiles on number of jobs and total wages per person in a given quarter post-exit. <!--In the notebook, we do this only for the first 100 rows to reduce computational power needed. We filter to look at the 1st quarter post-exit with the `year` and `quarter` columns (intead of `job_yr_q`) to demonstrate use of the `%d` placeholder. --></p>
+<pre class="yaml"><code>cohort &lt;- &quot;2016q4&quot; 
 year &lt;- 2017 
 quarter &lt;- 1
 
@@ -580,7 +736,7 @@ ORDER BY ssn limit 100;&quot;
 query &lt;- sprintf(base_query, year, quarter) 
 df_2016 &lt;- dbGetQuery(con,query)
 </code></pre>
-<p>We just saw a non-random sample of the number of jobs per person. Now, we calculate a distribution to give us a fuller picture.<label for="tufte-mn-21" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-21" class="margin-toggle"><span class="marginnote">i did a distribition on this - it wasnt in the tdc 2019 notebook</span></p>
+<p>We just saw a non-random sample of the number of jobs per person. Now, we calculate a distribution to give us a fuller picture.<label for="tufte-mn-23" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-23" class="margin-toggle"><span class="marginnote">i did a distribition on this - it wasnt in the tdc 2019 notebook</span></p>
 <p><span style="color:green; ">What is the distribution of employment and earnings (number of jobs, total wages) of individuals in our cohorts?</span></p>
 <pre class="yaml"><code>cohort &lt;- &quot;2016q4&quot; 
 year &lt;- 2017 
@@ -598,11 +754,12 @@ SELECT
         ) AS wages,
 
     unnest(array[0.1,0.25,0.5,.075,0.9]) as percentile_value 
+
  FROM ( 
-     SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs 
-     FROM ada_tdc_2020.tanf_wage_%s 
-     WEHRE year   = %d and quarter = %d 
-     GROUP BY ssn 
+    SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs 
+    FROM ada_tdc_2020.tanf_wage_%s 
+    WHERE year = %d and quarter = %d 
+    GROUP BY ssn 
     ORDER BY ssn)    as a
 
 query &lt;- sprintf(base_query, cohort, year, quarter) 
@@ -648,13 +805,14 @@ num_stable_tanf_df &lt;- dbGetQuery(con, query)
 <pre class="yaml"><code>
 num_stable_tanf_df$count/num_tanf_df$count, num_stable_tanf_df$count/num_employed_tanf_df$count
 </code></pre>
-<p><span style="color:red; font-weight: bold;">CHECKPOINT 4:</span> We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate it for the 2009 Q1 cohort. <label for="tufte-mn-22" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-22" class="margin-toggle"><span class="marginnote">come up with a better checkpoint?</span></p>
+<p><span style="color:red; font-weight: bold;">CHECKPOINT 4:</span> We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate it for the 2009 Q1 cohort. <label for="tufte-mn-24" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-24" class="margin-toggle"><span class="marginnote">come up with a better checkpoint?</span></p>
 </div>
 </div>
-<div id="employer" class="section level2">
-<h2>Employer</h2>
-<div id="summary-statistics-employer-characteristics" class="section level3">
-<h3>Summary Statistics: Employer Characteristics</h3>
+</div>
+<div id="employer" class="section level1">
+<h1>Employer</h1>
+<div id="summary-statistics-employer-characteristics" class="section level2">
+<h2>Summary Statistics: Employer Characteristics</h2>
 <p><strong>Guiding Questions:</strong></p>
 <p>We want to look at characteristics of firms that employ TANF leavers and all employers. TANF Employers are those employers who had at least one ssn from our TANF cohorts in their wage records.</p>
 <ol style="list-style-type: decimal">
@@ -667,10 +825,9 @@ num_stable_tanf_df$count/num_tanf_df$count, num_stable_tanf_df$count/num_employe
 <p><span style="color:green; ">What is the employment (total and stable) of employers?</span> <span style="color:green; ">In which industries do leavers find stable employment?</span></p>
 </div>
 </div>
-</div>
 <div id="scrap" class="section level1">
 <h1>SCRAP</h1>
-<p><label for="tufte-mn-23" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-23" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Columns</strong></span> <span style="display: block;"><code>uiacct</code> - firm identifier <code>naics_3_digit</code> - NAICS code indicating industry type <code>size</code> - # unique SSNs employed at the firm in the first quarter post-exit</span></span></p>
+<p><label for="tufte-mn-25" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-25" class="margin-toggle"><span class="marginnote"><span style="display: block;"><strong>Columns</strong></span> <span style="display: block;"><code>uiacct</code> - firm identifier <code>naics_3_digit</code> - NAICS code indicating industry type <code>size</code> - # unique SSNs employed at the firm in the first quarter post-exit</span></span></p>
 <p>We begin looking at characteristics of the firms that employ TANF leavers in our cohorts. The tables we will read from are <code>ada_tdc_2020.tanf_2016q4_empl</code> and <code>ada_tdc_2020.tanf_2009q1_empl</code>.</p>
 <p><span style="color:green; ">In which industries do leavers find stable employment?</span></p>
 <pre class="yaml"><code>cohort &lt;- &quot;2016q4&quot;
@@ -690,7 +847,7 @@ df &lt;- dbGetQuery(con, query)</code></pre>
 <p>Again we will answer this using R - specifically the <code>quantile</code> function from the <code>stats</code> library.</p>
 <pre class="yaml"><code>stats::quantile(df$size, probs = c(0.1,0.25,0.5,0.75,0.9))
 </code></pre>
-<p><strong>I’m pretty sure the remaining questions below do NOT go in data exploration - instead, ML prep like OSU</strong> 1. How many individuals does the firm employ? Total? <label for="tufte-mn-24" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-24" class="margin-toggle"><span class="marginnote">julia included a question about how many ppl does the firm stably employ - just want to make sure that belongs in data exploration. confirm that these earnings measures for the firm side should be here - i think they are in ML prep in OSU</span> 1. What are the wages paid by the firm? Calculate total, average and stable wages.<br />
+<p><strong>I’m pretty sure the remaining questions below do NOT go in data exploration - instead, ML prep like OSU</strong> 1. How many individuals does the firm employ? Total? <label for="tufte-mn-26" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-26" class="margin-toggle"><span class="marginnote">julia included a question about how many ppl does the firm stably employ - just want to make sure that belongs in data exploration. confirm that these earnings measures for the firm side should be here - i think they are in ML prep in OSU</span> 1. What are the wages paid by the firm? Calculate total, average and stable wages.<br />
 1. Other measures (turnover, earnings of workers in different industries)</p>
 <p>miscellaneous stuff from notebooks I was referencing</p>
 <ul>

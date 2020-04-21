@@ -7,7 +7,8 @@
   code: "DROP TABLE IF EXISTS ada_tdc_2020.tanf_2009q1;
   \nCREATE TABLE ada_tdc_2020.tanf_2009q1
   \nSELECT distinct 
-  \na.snn, a.caseid
+  \na.snn, a.caseid, a.tanf_start, a.tanf_end, b.county,
+  \nsubstring(a.month,5,2) as month, substring(a.month,1,4) as year
   \nFROM in_fssa.person_month a 
   \nINNER JOIN in_fssa.case_month on a.caseid = b.caseid
   \nWHERE
@@ -25,7 +26,8 @@
   code: "DROP TABLE IF EXISTS ada_tdc_2020.tanf_2016q4;
   \nCREATE TABLE ada_tdc_2020.tanf_2016q4
   \nSELECT distinct on (a.ssn)
-  \na.snn, a.caseid, a.tanf_start, a.tanf_end, b.county
+  \na.snn, a.caseid, a.tanf_start, a.tanf_end, b.county,
+  \nsubstring(a.month,5,2) as month, substring(a.month,1,4) as year
   \nFROM in_fssa.person_month a 
   \nINNER JOIN in_fssa.case_month on a.caseid = b.caseid
   \nWHERE
@@ -311,7 +313,8 @@
   section: wages
   notebook: data_exploration
   language: r
-  code: "\nyear <- 2017
+  code: "cohort <- \"2016q4\"
+  \nyear <- 2017
   \nquarter <- 1"
 
 - title: "num_wage_jobs_by_ssn_base_query"
@@ -361,12 +364,12 @@
     \n\t\t) AS wages,
   
   \n\tunnest(array[0.1,0.25,0.5,.075,0.9]) as percentile_value
-  \n FROM (
-    \n\t SELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs
-    \n\t FROM ada_tdc_2020.tanf_wage_%s
-    \n\t WEHRE year   = %d and quarter = %d
-    \n\t GROUP BY ssn
-    \n\tORDER BY ssn) 
+  \n\n FROM (
+    \n\tSELECT ssn, sum(wages) as tot_wages, count(*) as num_jobs
+    \n\tFROM ada_tdc_2020.tanf_wage_%s
+    \n\tWHERE year = %d and quarter = %d
+    \n\tGROUP BY ssn
+    \n\tORDER BY ssn)
     \t as a"
 
 - title: "dist_wages_num_jobs_query"
@@ -421,7 +424,7 @@
 
 - title: "tanf_cohort_preview"
   category: update_table
-  section: wages
+  section: tanf
   notebook: data_exploration
   language: sql
   code: "query <- \"SELECT *
@@ -429,6 +432,18 @@
 \nLIMIT 10;\"
 \n
 \ncohort_df <- dbGetQuery(con,query)"
+- title: "tanf_person_preview"
+  category: update_table
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT *
+\nFROM in_fssa.person_month
+\nLIMIT 10;\"
+\n
+\nin_df <- dbGetQuery(con,query)
+\n
+\nhead(in_df)"
 # - title: "num_rate_stable_employment"
 #   category: update_table
 #   section: wages
@@ -475,3 +490,197 @@
   notebook: data_exploration
   language: sql
   code: "num_employed_tanf_df$count/num_tanf_df$count"
+- title: "checkpoint2a_solution"
+  category: select
+  section: employers
+  notebook: data_exploration
+  language: sql
+  code: "SELECT * 
+  \nFROM ada_tdc_2020.tanf_2009q1 
+  \nlimit 20;"
+- title: "checkpoint2b_solution"
+  category: select
+  section: employers
+  notebook: data_exploration
+  language: sql
+  code: "SELECT * 
+  \nFROM ada_tdc_2020.tanf_2009q1 
+  \nWHERE rep_month = 2 and rep_year = 2009
+  \nlimit 20;"
+- title: "checkpoint2c_solution"
+  category: select
+  section: employers
+  notebook: data_exploration
+  language: sql
+  code: "SELECT count(distinct(ssn))
+  \nFROM ada_tdc_2020.tanf_2009q1;"
+# - title: "checkpoint4a_solution"
+#   category: select
+#   section: employers
+#   notebook: data_exploration
+#   language: sql
+#   code: "table_name <- \"ada_tdc_2020.wage_2016q4\"
+#   \njob_yr_q <- \"2017-01-01\"
+# \n\n
+# \nbase_query <- \"SELECT job_yr_q, count(distinct(ssn))
+# \nFROM ada_tdc_2020.%s
+# \nWHERE job_yr_q = '%s'\"
+# \n\n
+# \nquery <- sprintf(base_query, table_name, job_yr_q)
+#   "
+- title: "checkpoint1a_solution"
+  category: select
+  section: database
+  notebook: data_exploration
+  language: sql
+  code: "schema <- \"ada_tdc_2020\"
+  \ntbl <- \"case_month\"
+\n\n
+\nbase_query <- \"SELECT  *
+\nFROM information_schema.columns
+\nWHERE table_schema = '%s' and table_name = '%s'\""
+- title: "checkpoint1b_solution"
+  category: select
+  section: database
+  notebook: data_exploration
+  language: sql
+  code: "query <- sprintf(base_query, schema,tbl)"
+- title: "checkpoint1c_solution"
+  category: select
+  section: database
+  notebook: data_exploration
+  language: sql
+  code: "dbGetQuery(con, query)"
+- title: "spell_length_dist_query"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT count(*),tanf_spell_months as length
+  \nFROM ada_tdc_2020.tanf_2016q4
+  \nGROUP BY length
+  \nORDER BY count desc\""
+- title: "spell_length_dist"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "spell_count_df <- dbGetQuery(con,query)
+  \n\nhead(spell_count_df)"
+- title: "spell_length_25tile"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT
+\npercentile_cont(0.25) 
+\nWITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25
+\nFROM ada_tdc_2020.tanf_2016q4\""
+- title: "checkpoint3a_solution"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "table_name <- \"tanf_2009q1\"
+  \nbase_query <- \"SELECT 
+  \n\tunnest(
+  \n\t\tpercentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+  \n\t\tWITHIN GROUP (ORDER BY tanf_spell_months)
+  \n\t) AS months,
+  \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+  \nFROM ada_tdc_2020.%s\""
+- title: "checkpoint3b_solution"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- sprintf(base_query, table_name)
+  \n\npercentiles_2009q1_df <- dbGetQuery(con, query)"
+- title: "spell_length_percentiles"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT 
+  \n\tunnest(
+  \n\t\tpercentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+  \n\t\tWITHIN GROUP (ORDER BY tanf_spell_months)
+  \n\t) AS months,
+  \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+  \nFROM ada_tdc_2020.tanf_2016q4\""
+- title: "connect_db"
+  category: select
+  section: all
+  notebook: data_exploration
+  language: r
+  code: "drv <- dbDriver(\"PostgreSQL\")
+\ncon <- dbConnect(drv
+\n\t\t,dbname = \"postgresql://stuffed.adrf.info/appliedda\")"
+- title: "wage_cohort_preview"
+  category: select
+  section: all
+  notebook: data_exploration
+  language: r
+  code: "dbGetQuery(con, 
+  \n\"SELECT * 
+  \nFROM ada_tdc_2020.wage_2016q4 limit 5;)\""
+- title: "count_jobs_by_q_after_exit"
+  category: select
+  section: all
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT
+\njob_yr_q, count(*)
+\nFROM ada_tdc_2020.wage_2016q4
+\nWHERE job_yr_q in ('2017-01-01', '2018-01-01')
+\nGROUP BY job_yr_q
+\nORDER BY job_yr_q asc\""
+- title: "count_persons_by_q_after_exit"
+  category: select
+  section: all
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT
+\njob_yr_q, count(distinct(ssn))
+\nFROM ada_tdc_2020.wage_2016q4
+\nWHERE job_yr_q in ('2017-01-01', '2018-01-01')
+\nGROUP BY job_yr_q
+\nORDER BY job_yr_q asc\""
+- title: "wage_percentiles"
+  category: select
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT 
+  \n\tunnest(
+  \n\t\tpercentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+  \n\t\tWITHIN GROUP (ORDER BY wages)
+  \n\t) AS earnings_value,
+  \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+\nFROM ada_tdc_2020.wage_2016q4
+\nWHERE job_yr_q = '2017-01-01'\""
+- title: "checkpoint4a_solution"
+  category: select
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "\nbase_query <- \"SELECT 
+  \n\tunnest(
+  \n\t\tpercentile_cont(array[0.1,0.25,0.5,0.75,0.9]) 
+  \n\t\tWITHIN GROUP (ORDER BY wages)
+  \n\t) AS earnings_value,
+  \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
+\nFROM ada_tdc_2020.%s
+\nWHERE year = %d and quarter = %d\"
+"
+- title: "checkpoint4b_solution"
+  category: select
+  section: wages
+  notebook: data_exploration
+  language: sql
+  code: "table_name <- \"wage_2009q1\"
+  \nyear <- 2010
+  \nquarter <- 2
+  \nwage_dist_2009q1_5_query <- sprintf(base_query, table,year_quarter)
+\n\ndbGetQuery(con, wage_dist_2009q1_5_query)
+  "

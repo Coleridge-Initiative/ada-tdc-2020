@@ -12,7 +12,7 @@
 
 <meta name="author" content="Coleridge" />
 
-<meta name="date" content="2020-04-20" />
+<meta name="date" content="2020-04-21" />
 
 <title>Table Creation Handout</title>
 
@@ -281,7 +281,7 @@ if (window.hljs) {
 
 <h1 class="title toc-ignore">Table Creation Handout</h1>
 <h4 class="author">Coleridge</h4>
-<h4 class="date">2020-04-20</h4>
+<h4 class="date">2020-04-21</h4>
 
 
 <div id="TOC">
@@ -324,7 +324,7 @@ if (window.hljs) {
 <p>Two tables were created in the TANF data: <code>ada_tdc_2020.tanf_2009q1</code> and <code>ada_tdc_2020.tanf_2016q4</code> which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. <label for="tufte-mn-3" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle"><span class="marginnote">See data dictionary <em>chapin_hall_model.xlsx</em></span></p>
 <div id="form-of-table" class="section level2">
 <h2>Form of Table</h2>
-<p><label for="tufte-mn-4" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle"><span class="marginnote"><span style="display: block;"><code>tanf_total_months</code> is sum of <code>tanf_spell_months</code> across all spells that the individual had.</span></span></p>
+<p><label for="tufte-mn-4" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle"><span class="marginnote"><span style="display: block;"><code>tanf_total_months</code> is the sum of <code>tanf_spell_months</code> across all spells that the individual had.</span></span></p>
 <table>
 <thead>
 <tr class="header">
@@ -536,8 +536,8 @@ ssn IN (select distinct ssn from ada_tdc_2020.tanf_2016q4)
 </div>
 <div id="employer-characteristics-tables" class="section level1">
 <h1>Employer Characteristics Tables</h1>
-<p>Employer tables are base tables for generating employer characteristics that we will help us answer the question about TANF leavers - whare the characteristics of employers that TANF leavers go on to find stable employmnet?</p>
-<p>We will calculate the following meaures:</p>
+<p>Employer tables are base tables for generating employer characteristics that we will help us answer the question about TANF leavers - whare the characteristics of employers that TANF leavers go on to find stable employment?</p>
+<p>We will calculate the following measures:</p>
 <p>All Employment:</p>
 <pre><code>- total payroll  
 - average payroll  
@@ -549,111 +549,75 @@ ssn IN (select distinct ssn from ada_tdc_2020.tanf_2016q4)
 - average full quarter payroll  
 - total full quarter employment  </code></pre>
 <p><label for="tufte-mn-7" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-7" class="margin-toggle"><span class="marginnote"><span style="display: block;">Firms who employ TANF leavers are determined by filtering for firms where an <code>ssn</code> from the TANF cohorts appear in their wage records.</span></span> Tables will be created for all firms, in two time periods. In Data Exploration, we will filter this table to look at characteristics of firms that employ TANF leavers.</p>
-<!-- ## Form of Table -->
-<!-- ```{r, echo = F} -->
-<!-- wage_df <- data.frame(matrix(nrow = 4, ncol = 10)) -->
-<!-- colnames(wage_df)<-c("ssn","year","quarter","uiacct","fein","wages","naics_3_digit", "cnty","egr","id") -->
-<!-- wage_df$ssn <- c("ssnA","ssnB","ssnC","ssnD") -->
-<!-- wage_df$year<-c(2010,2010,2010,2011) -->
-<!-- wage_df$quarter <-  c(2,3,1,1) -->
-<!-- wage_df$uiacct <- c("S5GBU48PyzI0","xT5jPKk7pBn2","XsvUJdMmKikw", "CPRrceZIwBGl") -->
-<!-- wage_df$fein <- rep('fein', 4) -->
-<!-- wage_df$wages <- c(1291,200,3866,1928) -->
-<!-- wage_df$naics_3_digit<-c(447,772,624,724) -->
-<!-- wage_df$cnty <- rep('a county code', 4) -->
-<!-- wage_df$egr <- rep("?",4) -->
-<!-- wage_df$id <- rep("?",4) -->
-<!-- kable(wage_df,align=rep('c', 10)) -->
-<!-- ``` -->
-<!-- ## SQL Create Table Query -->
-<!-- _All Employers with wages in 2016Q4 exit quarter + 2 quarters_ -->
-<!-- ```yaml -->
-<!-- DROP TABLE IF EXISTS ada_tdc_2020.all_empl_wage_2016q4; 
-CREATE TABLE ada_tdc_2020.all_empl_wage_2016q4 
-SELECT *, format('%s-%s-1', year, quarter*3-2) as job_yr_q 
-from in_dwd.wage_by_employer 
-WHERE 
-((year = 2016 and quarter = 4) or (year = 2017 and quarter in (1,2)) -->
-<!-- ``` -->
-<!-- _All Employers with wages in 2009Q1 exit quarter + 2 quarters_ -->
-<!-- ```yaml -->
-<!-- DROP TABLE IF EXISTS ada_tdc_2020.all_empl_wage_2009q1; 
-CREATE TABLE ada_tdc_2020.all_empl_wage_2009q1 as 
-SELECT * 
-from in_dwd.wage_by_employer 
-WHERE 
-year = 2009 and quarter in (1,2,3) -->
-<!-- ``` -->
 <div id="form-of-table-2" class="section level2">
 <h2>Form of Table</h2>
-<p><label for="tufte-mn-8" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-8" class="margin-toggle"><span class="marginnote"><span style="display: block;"><code>naics_3_digit</code> is the industry identifier for business.</span> <span style="display: block;"><strong>CLayton</strong> - is it confusing that there is a year/quarter field since theres only 1 in this dataset?</span></span></p>
+<p><label for="tufte-mn-8" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-8" class="margin-toggle"><span class="marginnote"><span style="display: block;"><code>naics_3_digit</code> is the industry identifier for business.</span> <span style="display: block;"><code>tot_employment</code> and other measures for <em>all employment</em> are calculated in the quarter after exit</span> <span style="display: block;"><code>full_quarter_employment</code> and other measures of <em>stable employment</em> are calculated with the quarter after exit as reference quarter</span></span></p>
 <table>
 <thead>
 <tr class="header">
-<th align="left">column</th>
-<th align="left">description</th>
+<th align="left">Column</th>
+<th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">fein</td>
-<td align="left">NA</td>
+<td align="left">Business Identifier</td>
 </tr>
 <tr class="even">
 <td align="left">naics_3_digit</td>
-<td align="left">NA</td>
+<td align="left">Industry identifier</td>
 </tr>
 <tr class="odd">
 <td align="left">year</td>
-<td align="left">NA</td>
+<td align="left">year of wage record</td>
 </tr>
 <tr class="even">
 <td align="left">quarter</td>
-<td align="left">NA</td>
+<td align="left">quarter of wage record</td>
 </tr>
 <tr class="odd">
 <td align="left">job_yr_q</td>
-<td align="left">NA</td>
+<td align="left">year-quarter in date format</td>
 </tr>
 <tr class="even">
 <td align="left">tot_employment</td>
-<td align="left">count(ssn) in reference quarter</td>
+<td align="left">count(ssn) in quarter after exit</td>
 </tr>
 <tr class="odd">
 <td align="left">tot_earnings</td>
-<td align="left">sum(wages) in reference quarter</td>
+<td align="left">sum(wages) in quarter after exit</td>
 </tr>
 <tr class="even">
 <td align="left">avg_earnings</td>
-<td align="left">sum(wages)/count(ssn) in reference quarter</td>
+<td align="left">sum(wages)/count(ssn) in quarter after exit</td>
 </tr>
 <tr class="odd">
 <td align="left">bottom_25_earnings</td>
-<td align="left">earnings, all individuals, at the 25th percentile</td>
+<td align="left">earnings in quarter after exit, at the 25th percentile</td>
 </tr>
 <tr class="even">
 <td align="left">top_25_earnings</td>
-<td align="left">earnings, all individuals, at the 75th percentile</td>
+<td align="left">earnings in quarter after exit, at the 75th percentile</td>
 </tr>
 <tr class="odd">
 <td align="left">full_quarter_employment</td>
-<td align="left">NA</td>
+<td align="left">count(ssn) for ssns that were stably employed</td>
 </tr>
 <tr class="even">
 <td align="left">full_quarter_earnings</td>
-<td align="left">NA</td>
+<td align="left">sum(wages) for wages where the ssns were stably employed</td>
 </tr>
 <tr class="odd">
 <td align="left">full_quarter_avg_earnings</td>
-<td align="left">NA</td>
+<td align="left">sum(wages)/count(ssn) for wages/ssn that were stably employed</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div id="specifications-2" class="section level2">
 <h2>Specifications</h2>
-<p>The base table for employment characteristics are wages from firms in the quarter of exit and 2 quarters post-exit. Tables are <code>all_empl_wage_2016q4</code> and <code>all_empl_wage_2009q1</code>.</p>
-<p><label for="tufte-mn-9" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-9" class="margin-toggle"><span class="marginnote">confirm that the time specifications on this are correct</span></p>
+<p>The base tables for employment characteristics are wages from firms in the quarter of exit and 2 quarters post-exit. Base tables are <code>all_empl_wage_2016q4</code> and <code>all_empl_wage_2009q1</code>.</p>
 <p><em>Inclusion Criteria</em></p>
 <pre><code>- Wage records for firms, starting in quarter post-exit   
 - All firms     
@@ -665,7 +629,7 @@ year = 2009 and quarter in (1,2,3) -->
 - total employment  - count(ssn) in reference quarter  
 - earnings at the 25th percentile    
 - earnings at the 75th percentile  </code></pre>
-<p>The below measures, calculated on <em>stably employed individuals</em>, defined as individuals employed for 3 consecutives quarters by the same firm, are calculated with a reference quarter of the quarter after exit (2009 Q2 and 2017 Q1). <label for="tufte-mn-10" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-10" class="margin-toggle"><span class="marginnote"><span style="display: block;">For more on these earnings and employment measures, see the Bureau of Labor Statistics’ <a href="https://qwiexplorer.ces.census.gov/static/explore.html#x=0&amp;g=0">Quarterly Workforce Indicators 101</a></span></span></p>
+<p>The below measures, calculated on <em>stably employed individuals</em>, defined as individuals employed for 3 consecutives quarters by the same firm, are calculated with a reference quarter of the quarter after exit (2009 Q2 and 2017 Q1). <label for="tufte-mn-9" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-9" class="margin-toggle"><span class="marginnote"><span style="display: block;">For more on these earnings and employment measures, see the Bureau of Labor Statistics’ <a href="https://qwiexplorer.ces.census.gov/static/explore.html#x=0&amp;g=0">Quarterly Workforce Indicators 101</a></span></span></p>
 <pre><code>- total full quarter payroll  
 - average full quarter payroll  
 - total full quarter employment  </code></pre>
@@ -682,7 +646,7 @@ from in_dwd.wage_by_employer
 WHERE 
 ((year = 2016 and quarter = 4) or (year = 2017 and quarter in (1,2))
 </code></pre>
-<p><em>Earnings/Employment, all employment, 1st quarter post-exit</em> <label for="tufte-mn-11" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-11" class="margin-toggle"><span class="marginnote"><span style="display: block;">Earnings/employment measures are calculated at a point-in-time, giving a snapshot of the firm. The wage records are filtered for the quarter post-exit (Q1 2017).</span></span></p>
+<p><em>Earnings/Employment, all employment, 1st quarter post-exit</em> <label for="tufte-mn-10" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-10" class="margin-toggle"><span class="marginnote"><span style="display: block;">Earnings/employment measures are calculated at a point-in-time, giving a snapshot of the firm. The wage records are filtered for the quarter post-exit (Q1 2017).</span></span></p>
 <pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.all_empl_char_2016q4; 
 CREATE TABLE ada_tdc_2020.all_empl_char_2016q4 
 SELECT fein, cnty, naics_3_digit, year, quarter, job_yr_q 
@@ -702,7 +666,7 @@ ADD COLUMN full_quarter_earnings int,
 ADD COLUMN full_quarter_avg_earnings int
 </code></pre>
 <p>Create base table employing a <code>CROSS JOIN</code> that will be used to calculate the stable employment (full-quarter employment) measures and populated into the <code>all_empl_char_2016q4</code> columns we just created.</p>
-<p><label for="tufte-mn-12" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-12" class="margin-toggle"><span class="marginnote"><span style="display: block;">A <code>CROSS JOIN</code> is employed to create a longitudinally linked file. The CROSS JOIN is done by <em>crossing</em> the table with itself three times, joining wages from the reference quarter to wages from the quarter before and after the reference. This is done bcause full-quarter employment requires at least 3 months of employment at hte same firm. See <a href="#Appendix">Appendix</a> for more on the <code>CROSS JOIN</code>.</span></span></p>
+<p><label for="tufte-mn-11" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-11" class="margin-toggle"><span class="marginnote"><span style="display: block;">A <code>CROSS JOIN</code> is employed to create a longitudinally linked file. The CROSS JOIN is done by <em>crossing</em> the table with itself three times, joining wages from the reference quarter to wages from the quarter before and after the reference. This is done bcause full-quarter employment requires at least 3 months of employment at hte same firm. See <a href="#Appendix">Appendix</a> for more on the <code>CROSS JOIN</code>.</span></span></p>
 <pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.stable_empl_base_2016q4; 
 CREATE TABLE ada_tdc_2020.stable_empl_base_2016q4 as 
 SELECT 
@@ -805,8 +769,8 @@ and <span class="math display">\[employer_{q1}=employer_{q2}=employer_{q3}\]</sp
 <h2>Specifications</h2>
 <p><em>Inclusion Criteria</em></p>
 <pre><code>- Individuals who had three consecutive quarters of employment at the same firm  
-- Looking at stably employed inidividuals with a reference quarter as the first quarter after exit of our TANF cohorts</code></pre>
-<p>The form of the table is equivalent to that of the wage tables. However, only those individuals who were employed for three consective quarters, beginning with the exit quarter, are considered <em>stably employed</em> and are in this table and therefore contribute to the aggregate statistics. Individuals who do not have 3 consecutive quarters of employment by the same are filtered out by virtue of the fact that the <code>CROSS JOIN</code> keys are <code>ssn</code> (person), <code>fein</code> (firm) and <code>job_yr_q</code> (joined on consecutive year-quarters).</p>
+- Looking at stably employed individuals with a reference quarter as the first quarter after exit of our TANF cohorts</code></pre>
+<p>The form of the table is equivalent to that of the wage tables. However, only those individuals who were employed for three consecutive quarters, beginning with the exit quarter, are considered <em>stably employed</em> and are in this table and therefore contribute to the aggregate statistics. Individuals who do not have 3 consecutive quarters of employment by the same are filtered out by virtue of the fact that the <code>CROSS JOIN</code> keys are <code>ssn</code> (person), <code>fein</code> (firm) and <code>job_yr_q</code> (joined on consecutive year-quarters).</p>
 <p><em>Form of the table created with a <code>CROSS-JOIN</code>, the base table for employment outcomes</em></p>
 <table>
 <thead>
