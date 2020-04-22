@@ -49,7 +49,7 @@ There is one row per `ssn`; for individuals who had more than one spell ending i
 ```
 TANF tables follow the naming convention: `ada_tdc_2020.tanf_<year>q<quarter>`. Each of these tables contains individuals who were primary recipients of TANF and had a spell ending in the year-quarter in the table name. The unit of analysis is `person-spell`. 
 
-Two tables were created in the TANF data: `ada_tdc_2020.tanf_2009q1` and `ada_tdc_2020.tanf_2016q4` which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. `r margin_note('See data dictionary *chapin_hall_model.xlsx*')` 
+Two tables were created in the TANF data: `ada_tdc_2020.tanf_2009q1` and `ada_tdc_2020.tanf_2016q4` which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. The TANF cohort tables originate from the `person_month` table in the `in_fssa` schema. `r margin_note('See [Data Dictionary](https://ada.coleridgeinitiative.org/ada-2019-tdc#data-doc){target="_blank"}')` 
 
 ## Form of Table
 

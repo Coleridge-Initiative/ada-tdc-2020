@@ -576,7 +576,7 @@
 \npercentile_cont(0.25) 
 \nWITHIN GROUP (ORDER BY tanf_spell_months) as percentile_25
 \nFROM ada_tdc_2020.tanf_2016q4\""
-- title: "checkpoint3a_solution"
+- title: "checkpoint4a_solution"
   category: select
   section: tanf
   notebook: data_exploration
@@ -589,7 +589,7 @@
   \n\t) AS months,
   \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
   \nFROM ada_tdc_2020.%s\""
-- title: "checkpoint3b_solution"
+- title: "checkpoint4b_solution"
   category: select
   section: tanf
   notebook: data_exploration
@@ -607,7 +607,8 @@
   \n\t\tWITHIN GROUP (ORDER BY tanf_spell_months)
   \n\t) AS months,
   \n\tunnest(array[0.1,0.25,0.5,0.75,0.9]) as percentile_value
-  \nFROM ada_tdc_2020.tanf_2016q4\""
+  \nFROM ada_tdc_2020.tanf_2016q4\"
+  \n\npercentiles_df <- dbGetQuery(con, query)"
 - title: "connect_db"
   category: select
   section: all
@@ -684,3 +685,150 @@
   \nwage_dist_2009q1_5_query <- sprintf(base_query, table,year_quarter)
 \n\ndbGetQuery(con, wage_dist_2009q1_5_query)
   "
+- title: "tanf_count_2009q1"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT count(distinct ssn)
+  \nFROM ada_tdc_2020.tanf_2009q1\"
+  \n\ndbGetQuery(con, query)
+  "
+- title: "tanf_count_2016q4_sql"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT count(distinct ssn)
+  \nFROM ada_tdc_2020.tanf_2016q4\"
+  \n\ndbGetQuery(con, query)
+  "
+- title: "tanf_count_by_county_2016q4_sql"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT county, count(distinct ssn)
+  \nFROM ada_tdc_2020.tanf_2016q4 
+  \nGROUP BY county\"
+  \n\ncount_by_county_2016q4_df <- dbGetQuery(con, query)
+  "
+- title: "sort_tanf_count_by_county_2016q4"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "head(count_by_county_2016q4_df[-order(count_by_county_2016q4_df$count),]
+  \n\t,10)"
+- title: "select_tanf_ssn_county_2016q4"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "query <- \"SELECT distinct ssn, county
+  \nFROM ada_tdc_2020.tanf_2009q1 
+  \n\ntanf2009q1_ssn_county <- dbGetQuery(con, query)"
+- title: "tanf_count_by_county_2016q4"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "ssn_by_region <- tanf2016q4_ssn_county %>%
+  \n\t\t\t\t\tcount(county) %>%
+  \n\t\t\t\t\tarrange(-n)"
+- title: "checkpoint3_solution"
+  category: select
+  section: tanf 
+  notebook: data_exploration
+  language: r
+  code: "qry <- \"SELECT COUNT(*), tanf_spell_months as length
+  \nFROM ada_tdc_2020.tanf_2016q4
+  \nWHERE county = '097'
+  \nGROUP BY length
+  \nORDER BY count DESC\"
+  \n\ndbGetQuery(con, qry)"
+- title: "long_stayers_input"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "val_90 <- percentiles_df$months[percentiles_df$percentile_value == 0.9]"
+- title: "read_tanf_2016q4"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "cohort2016q4_df <-dbGetQuery(con,  
+  \n\"SELECT *
+  FROM ada_tdc_2020.tanf_2016q4\""
+- title: "read_tanf_2009q1"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "cohort2009q1_df <- dbGetQuery(con,  
+  \n\"SELECT *
+  FROM ada_tdc_2020.tanf_2009q1\""
+- title: "create_long_term_df"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: sql
+  code: "long_term_df <-tanf_2016q4 %>%
+  \n\t\t\tmutate(long_term = ifelse(
+    \n\t\t\t\ttanf_spell_months >= val_90, \"long_term\",\"not_long_term\"
+    \n\t\t\t)"
+- title: "summarize_long_term_df"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "long_term_df %>%
+  \n\tdplyr::count(county,long_term) %>%
+  \n\ttidyr::spread(key = long_term,value = n) %>%
+  \n\treplace_na(list(long_term = 0, not_long_term = 0)) %>%
+  \n\tmutate(pct_stayers = 100*(long_term/(long_term+not_long_term))) %>%
+  \n\tarrange(-pct_stayers) %>%
+  \n\thead()
+  "
+- title: "tanf_count_2009q1_r"
+  category: select
+  section: tanf
+  notebook: data_exploration
+  language: r
+  code: "length(unique(cohort2009q1_df$ssn))"
+- title: "employed_within_year_function"
+  category: function
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "employed_within_year <- function(cohort){
+    \n\tquery <- sprintf(\"SELECT
+    \n\tcount(distinct a.ssn)
+    \n\tFROM
+    \n\t\t(SELECT
+    \n\t\ta.ssn, a.exit_date, b.wages, b.job_yr_q,
+    \n\t\t(b.job_yr_q - a.exit_date) as time_after_exit
+    \n\t\tFROM ada_tdc_2020.tanf_%s as a
+    \n\t\tJOIN ada_tdc_2020.tanf_wage_%s as b on a.ssn = b.ssn
+    \n\t\tWHERE b.job_yr_q > a.exit_date AND (a.exit_date + '1 year'::interval) >= b.job_yr_q
+    \n\t\t) as a;\",cohort,cohort)
+
+    \n\n\tleaders_with_job_year <- dbGetQuery(con, query)
+    \n\n\tn_leavers <- dbGetQuery(con, 
+    \n\t\t\t\t\tsprintf(\"SELECT count(distinct ssn) FROM ada_tdc_2020.tanf_%s\",cohort))
+    \n\n\temployed_within_year_rate <- leavers_with_job_year$count/n_leavers$count
+    \n\n\treturn(nemployed_within_year_rate)
+    \n}"
+- title: "run_employed_within_year_function"
+  category: function
+  section: wages
+  notebook: data_exploration
+  language: r
+  code: "cohort <- \"2016q4\"
+  \nemployed_in_year_rate_2016q4 <- employed_within_year(cohort)
+\n\ncohort <- \"2009q1\"
+  \nemployed_in_year_rate_2009q1 <- employed_within_year(cohort)"
+
+
+

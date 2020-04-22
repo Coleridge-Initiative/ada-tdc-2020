@@ -12,7 +12,7 @@
 
 <meta name="author" content="Coleridge" />
 
-<meta name="date" content="2020-04-21" />
+<meta name="date" content="2020-04-22" />
 
 <title>Table Creation Handout</title>
 
@@ -281,7 +281,7 @@ if (window.hljs) {
 
 <h1 class="title toc-ignore">Table Creation Handout</h1>
 <h4 class="author">Coleridge</h4>
-<h4 class="date">2020-04-21</h4>
+<h4 class="date">2020-04-22</h4>
 
 
 <div id="TOC">
@@ -321,7 +321,7 @@ if (window.hljs) {
 <div id="tanf-tables" class="section level1">
 <h1>TANF Tables</h1>
 <p><label for="tufte-mn-2" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-2" class="margin-toggle"><span class="marginnote"><span style="display: block;">There is one row per <code>ssn</code>; for individuals who had more than one spell ending in the exit period, the most recent spell is in the table (e.g., the spell with the latest report month where <code>tanf_end</code> == <code>TRUE</code>.)</span></span> TANF tables follow the naming convention: <code>ada_tdc_2020.tanf_&lt;year&gt;q&lt;quarter&gt;</code>. Each of these tables contains individuals who were primary recipients of TANF and had a spell ending in the year-quarter in the table name. The unit of analysis is <code>person-spell</code>.</p>
-<p>Two tables were created in the TANF data: <code>ada_tdc_2020.tanf_2009q1</code> and <code>ada_tdc_2020.tanf_2016q4</code> which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. <label for="tufte-mn-3" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle"><span class="marginnote">See data dictionary <em>chapin_hall_model.xlsx</em></span></p>
+<p>Two tables were created in the TANF data: <code>ada_tdc_2020.tanf_2009q1</code> and <code>ada_tdc_2020.tanf_2016q4</code> which contain spells for primary TANF recipients who ended a spell in Q1 2009 or Q4 2016, respectively. The TANF cohort tables originate from the <code>person_month</code> table in the <code>in_fssa</code> schema. <label for="tufte-mn-3" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-3" class="margin-toggle"><span class="marginnote">See <a href="https://ada.coleridgeinitiative.org/ada-2019-tdc#data-doc" target="_blank">Data Dictionary</a></span></p>
 <div id="form-of-table" class="section level2">
 <h2>Form of Table</h2>
 <p><label for="tufte-mn-4" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-4" class="margin-toggle"><span class="marginnote"><span style="display: block;"><code>tanf_total_months</code> is the sum of <code>tanf_spell_months</code> across all spells that the individual had.</span></span></p>
@@ -335,6 +335,8 @@ if (window.hljs) {
 <th align="center">tanf_spell_months</th>
 <th align="center">tanf_total_months</th>
 <th align="center">county</th>
+<th align="center">rep_year</th>
+<th align="center">rep_month</th>
 </tr>
 </thead>
 <tbody>
@@ -346,6 +348,8 @@ if (window.hljs) {
 <td align="center">4</td>
 <td align="center">10</td>
 <td align="center">97</td>
+<td align="center">2009</td>
+<td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">ssnB</td>
@@ -355,6 +359,8 @@ if (window.hljs) {
 <td align="center">1</td>
 <td align="center">1</td>
 <td align="center">52</td>
+<td align="center">2009</td>
+<td align="center">2</td>
 </tr>
 <tr class="odd">
 <td align="center">ssnC</td>
@@ -364,6 +370,8 @@ if (window.hljs) {
 <td align="center">7</td>
 <td align="center">18</td>
 <td align="center">95</td>
+<td align="center">2009</td>
+<td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">ssnD</td>
@@ -373,6 +381,8 @@ if (window.hljs) {
 <td align="center">13</td>
 <td align="center">13</td>
 <td align="center">173</td>
+<td align="center">2009</td>
+<td align="center">3</td>
 </tr>
 </tbody>
 </table>
@@ -394,7 +404,8 @@ if (window.hljs) {
 <pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.tanf_2009q1; 
 CREATE TABLE ada_tdc_2020.tanf_2009q1 
 SELECT distinct 
-a.snn, a.caseid 
+a.snn, a.caseid, a.tanf_start, a.tanf_end, b.county, 
+substring(a.month,5,2) as month, substring(a.month,1,4) as year 
 FROM in_fssa.person_month a 
 INNER JOIN in_fssa.case_month on a.caseid = b.caseid 
 WHERE 
@@ -408,7 +419,8 @@ order by a.ssn,a.month desc
 <pre class="yaml"><code>DROP TABLE IF EXISTS ada_tdc_2020.tanf_2016q4; 
 CREATE TABLE ada_tdc_2020.tanf_2016q4 
 SELECT distinct on (a.ssn) 
-a.snn, a.caseid, a.tanf_start, a.tanf_end, b.county 
+a.snn, a.caseid, a.tanf_start, a.tanf_end, b.county, 
+substring(a.month,5,2) as month, substring(a.month,1,4) as year 
 FROM in_fssa.person_month a 
 INNER JOIN in_fssa.case_month on a.caseid = b.caseid 
 WHERE 

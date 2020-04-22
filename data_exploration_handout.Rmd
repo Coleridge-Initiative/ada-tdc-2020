@@ -61,7 +61,7 @@ This handout mirrors the content in the Data Exploration notebook lesson which y
 Each section has:   
 
 - <span style="color:green;font-weight: bold; ">Guiding Questions</span>, summarized at the top of the section and dispersed throughout the document in <span style="color:green; ">green</span>.
-- <span style="color:blue;font-weight: bold; ">Ask Yourself Questions</span>, quick, bite-sized questions to jog your brain and make sure we're all on the same page. in <span style="color:blue; ">blue</span>.
+- <span style="color:blue;font-weight: bold; ">Ask Yourself Questions</span>, quick, bite-sized questions to jog your brain and make sure we're all on the same page in <span style="color:blue; ">blue</span>.
 - <span style="color:red;font-weight: bold; ">Checkpoints</span>,  which are mini-exercises for you to complete, to be reviewed during "in-class" time. They are included in each section in <span style="color:red; ">red</span>.
 
 `r margin_note('these come from the syllabus')`
@@ -269,13 +269,16 @@ _Solution_
 # Individual
 ## Summary Statistics: TANF
 
-<span style="color:green;font-weight: bold;">Guiding Questions:</span>  
+<span style="color:green;font-weight: bold;">Guiding Questions</span>    
 
 For individuals who had a spell ending in 2016 Q4, we want to know:    
 
+1.  How many primary recipients of TANF had a spell ending in 2016 Q4? 2009 Q1?
+1.  Does the number of individuals receiving benefits vary by county?
 1.  What is the distribution of spell lengths amongst individuals in our cohort?
 1.  What is the spell length at the 25th percentile?   
 1.  What are the spell lengths at the 10th, 25th, 50th, 75th and 90th percentiles?
+1.  Are we seeing a concentration of lengthy spells in specific regions?
 
 ```{marginfigure echo = TRUE}
 See the [Table Creation Handout](table_creation_handout.html){target="_blank"} for more on how the cohorts were created.
@@ -303,7 +306,9 @@ Now let's look at the 2016 Q4 cohort. This is a cohort of individuals who were p
 Practice using SQL functions `LIMIT`, `WHERE`, and `COUNT`.
 
 ```
-#### <span style="color:red">CHECKPOINT 2</span>
+
+
+### <span style="color:red">CHECKPOINT 2</span>
 
 
 Read in the 2009 Q1 TANF Cohort.</span>
@@ -348,6 +353,65 @@ _Answer:_ `in_fssa.person_month` has monthly TANF transactions (disbursement of 
 
 _Answer:_ 1, 2
 
+<span style="color:green; ">How many primary recipients of TANF had a spell ending in 2009 Q1? 2016 Q4? </span>
+
+
+We can do this in calculation in SQL (here, with the 2016 Q4 cohort)
+
+```yaml
+`r code_snips$code[code_snips$title=="tanf_count_2016q4"]`
+```
+
+And we can also do it in R, for the 2009 Q1 cohort. We'll first read in the entire `tanf_2009q1` table.
+
+
+```yaml
+`r code_snips$code[code_snips$title=="read_tanf_2009q1"]`
+
+```
+
+Then, we can count the number of unique individuals using the `unique` and `length` functions from base R.
+
+```yaml
+`r code_snips$code[code_snips$title=="tanf_count_2009q1_r"]`
+
+```
+
+<span style="color:green; ">Does the number of individuals receiving benefits vary by county?</span>
+
+We will show how to solve this with SQL and R.
+
+**2016 Q4 Cohort, SQL**
+
+```yaml
+`r code_snips$code[code_snips$title=="tanf_count_by_county_2016q4"]`
+
+
+```
+We display the aggregaate counts by sorting on the `count` field using the `order` function from base R. 
+
+```yaml
+`r code_snips$code[code_snips$title=="sort_tanf_count_by_county_2016q4"]`
+
+
+```
+**2009 Q1 Cohort, R**
+
+We'll start to use data manipulation functions from the `tidyverse` library. Since we are looking for the number of individuals per region, we can use `SELECT DISTINCT` when we read in the `ssn` and `county` fields.
+
+First, read in the table.
+
+```yaml
+`r code_snips$code[code_snips$title=="select_tanf_ssn_county_2016q4"]`
+
+```
+Then using functions from `tidyverse`, we do the aggregation. `count` takes as input the grouping variable and returns the row count per group in a new column automatically named `n`. `arrange` is similar to the `order` function we saw before, accepting `-` to sort in descending order. 
+
+```yaml
+`r code_snips$code[code_snips$title=="tanf_count_by_county_2016q4"]`
+
+```
+
 <span style="color:green; ">What is the distribution of spell lengths amongst individuals in our cohort?</span>
 
 The question is asking us about spell lengths, so we aggregate to count the number of persons with a spell of a given length.
@@ -375,8 +439,15 @@ min(spell_count_df$length)
 max(spell_count_df$length)
 
 ```
+### <span style="color:red;">CHECKPOINT 3</span>
+Explore 2016 Q4 TANF Leavers. How does the distribution we just calculated vary by region? Use `county` field to look at the distribution within a specific county. 
 
 
+_Solution_
+```yaml
+`r code_snips$code[code_snips$title=="checkpoint3_solution"]`
+
+```
 <span style="color:green; ">What is the spell length at the 25th percentile?</span>
 
 
@@ -401,7 +472,7 @@ We can extend the query to calculate other percentile values, and use `unnest` f
 Practice writing a parameterized query and use it to generate data for the comparison cohort. 
 ```
 
-#### <span style="color:red;">CHECKPOINT 3</span>
+### <span style="color:red;">CHECKPOINT 4</span>
 Calculate spell lengths at different percentiles for the 2009 Q1 Cohort.
 
 Modify the query used to calculate spell length at the 10th, 25th, 50th, 75th and 90th percentile for the cohort exiting TANF in Q1 of 2009 (`ada_tdc_2020.tanf_2009q1`)
@@ -414,20 +485,61 @@ Modify the query used to calculate spell length at the 10th, 25th, 50th, 75th an
 
 _Solution_   
 
-3a
+4a
 ```yaml
-`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint3a_solution"]`
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint4a_solution"]`
 
 ```
-3b
+4b
 ```yaml
-`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint3b_solution"]`
+`r code_snips$code[code_snips$notebook == "data_exploration" & code_snips$title=="checkpoint4b_solution"]`
+
+```
+
+<span style="color:green; ">Are we seeing a concentration of lengthy spells in specific regions?</span>
+
+We want to take a better look counties that have a high proportion of "long term stayers" (defined here as being above the 90th percentile value) relative to all individuals in the cohort. We will introduce some common useful functions from the `tidyverse` library. 
+
+
+First we retrieve the values at the 90th percentile and store it as `val_90`.
+
+```yaml
+`r code_snips$code[ code_snips$title=="long_stayers_input"]`
+
+```
+
+Then we read in the cohort
+```yaml
+`r code_snips$code[ code_snips$title=="read_tanf_2016q4"]`
+
+```
+We use `mutate` to create a new column `long_term` as a flag to indicate if the spell was long-term by our definition of being longer than the 90th percentile value. We impose this condition with `ifelse`.
+
+```yaml
+`r code_snips$code[ code_snips$title=="create_long_term_df"]`
+```
+Finally, we use:
+
+    - `count` to count rows by county and long term status with the flag we just created  
+    - `spread` to pivot the counts from rows into columns
+    - `replace_na` to replace NA values with 0 for counties where there were no rows for a given `long_term_status` value
+    - `mutate` to calculaate the percentage of long term stayers to total
+    - `arrange` to sort by the percentage
+    - `head` to see the first 6 rows. We've used head many times but now we show how it can be used in a chained expression.
+
+```{marginfigure echo = TRUE}
+Note that `tidyverse` is comprised of multiple other libraries that we use here like `dplyr` and `tidyr`. We are following the best practice of putting `library::function` here.
+```
+
+```yaml
+`r code_snips$code[ code_snips$title=="summarize_long_term_df"]`
+
 
 ```
 
 ## Summary Statistics: Wages
 
-<span style="color:green;font-weight: bold;">Guiding Questions:</span>  
+<span style="color:green;font-weight: bold;">Guiding Questions</span>  
 
 We are interested in the earnings and employment characteristics of TANF leavers in their 1st and 5th quarters post-exit.
 ```{marginfigure echo = TRUE}
@@ -438,6 +550,7 @@ Introduce `sprintf` function for making queries flexible by creating a placehold
 1.  What is the shape/form of the wage tables?  
 1.  How many total jobs did leavers hold in the 1st and 5th quarter post-exit?   
 1.  How many individuals were working those jobs?  
+1.  What proportion of TANF leavers from our cohorts had jobs within a year of their exit?
 1.  What was the distribution of wages in the 1st quarter post-exit?  
 1.  What is the employment and earnings (number of jobs, total wages) of individuals in our 2016 Q4 cohort in the quarter after exit?
 1.  What was the proportion of individuals in our TANF cohorts with a job during the year after their exit? Proportion with a stable job?
@@ -472,6 +585,22 @@ Aggregate the total number of persons with `count(distinct(ssn))`, since each ro
 
 ```yaml
 `r code_snips$code[code_snips$title == "count_persons_by_q_after_exit"]`
+
+```
+
+<span style="color:green; ">What proportion of TANF leavers from our cohorts had jobs within a year of their exit?</span>
+
+We first created a user-defined function to make it easy to run for multiple cohorts
+
+```yaml
+`r code_snips$code[code_snips$title == "employed_within_year_function"]`
+
+```
+
+And then ran it with our two cohorts
+
+```yaml
+`r code_snips$code[code_snips$title == "run_employed_within_year_function"]`
 
 ```
 
@@ -605,7 +734,7 @@ We just calculated full quarter employment for the 2016 Q4 cohort. Now calculate
 # Employer
 ## Summary Statistics: Employer Characteristics
 
-**Guiding Questions:**  
+<span style="color:green;font-weight: bold;">Guiding Questions</span>  
 
 We want to look at characteristics of firms that employ TANF leavers and all employers. TANF Employers are those employers who had at least one ssn from our TANF cohorts in their wage records. 
 
