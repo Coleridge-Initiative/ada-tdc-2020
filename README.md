@@ -1,1 +1,3 @@
 # ada-tdc-2020
+
+The goal of the [TANF Data Collaborative](https://www.tanfdata.org/)’s Applied Data Analytics program is to help professionals at TANF and related human services agencies develop key data science skills by working hands on with confidential, administrative datasets. The curriculum is designed to introduce the data science skills necessary to work with confidential data.  It provides a mix of online materials that participants can review at their own pace, interactive lectures, prepared materials provided using Jupyter Notebooks and guided project work in small groups. The curriculum draws on the second edition of Big Data and Social Science: A Practical Guide to Methods and Tools, which is available online https://textbook.coleridgeinitiative.org/
